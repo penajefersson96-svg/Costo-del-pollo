@@ -2,7 +2,7 @@
 const KU='pc_users';
 function users(){return loadJSON(KU,[])}
 function saveUsers(u){saveJSON(KU,u)}
-const LINK_APP='https://penajefersson96-svg.github.io/Costo-del-pollo/';
+const LINK_APP='https://penajefersson96-svg.github.io/Sistema-Avicola/';
 function render(){
   const u=users();
   $('#usersList').innerHTML=u.length?u.map(x=>'<div class="item"><div><div class="t">'+esc(x.nom)+'</div><div class="s">C.I. '+esc(x.ced||'—')+' · @'+esc(x.usu||'—')+'</div></div><div style="display:flex;gap:6px;align-items:center"><span class="badge '+(x.rol==='admin'?'b-ok':'b-warn')+'"><i></i>'+(x.rol==='admin'?'Admin':(x.ext?'Empleado +':'Empleado'))+'</span><button class="mini d" data-du="'+x.id+'">✕</button></div></div>').join(''):'<p class="muted">Aún no hay usuarios. Crea el primero abajo.</p>';
