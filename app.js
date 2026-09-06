@@ -216,3 +216,6 @@ if('serviceWorker' in navigator){
   });
   setInterval(()=>{navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{})},60000);
 }
+/* ══ PARCHE 9 · pollito nuevo ══ */
+document.querySelector('header .chick').outerHTML='<img class="chick" src="pollo.png" alt="pollito">';
+document.head.insertAdjacentHTML('beforeend','<style>.chick{width:96px;height:96px;object-fit:cover;border-radius:22px;border:3px solid #232A1C;background:#fff;box-shadow:4px 4px 0 rgba(0,0,0,.25)}</style>');
