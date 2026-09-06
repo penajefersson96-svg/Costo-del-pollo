@@ -111,6 +111,11 @@ $('#btnDown').onclick=async()=>{
   try{const url=URL.createObjectURL(new Blob([t],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='respaldo-avipro.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000)}catch(e){}
   $('#bkText').value=t;toast('Si no descargó: el respaldo quedó en el cuadro manual; cópialo y guárdalo en Drive o Notas');
 };
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js');
+  let r=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(r)toast('App actualizada');r=true});
+}
 </script>
 </body>
 </html>
