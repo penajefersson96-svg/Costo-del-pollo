@@ -206,3 +206,13 @@ if(!document.querySelector('link[rel=manifest]')){
   const ml=document.createElement('link');ml.rel='manifest';ml.href='manifest.json';document.head.appendChild(ml);
 }
 if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}
+/* ══ PARCHE 8 · se actualiza sola ══ */
+if('serviceWorker' in navigator){
+  let tenia=navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(!tenia){tenia=true;return}
+    if(sessionStorage.getItem('swRecarga')){sessionStorage.removeItem('swRecarga');toast('🔄 App actualizada')}
+    else{sessionStorage.setItem('swRecarga','1');location.reload()}
+  });
+  setInterval(()=>{navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{})},60000);
+}
