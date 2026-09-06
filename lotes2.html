@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1E5631">
+<title>Lotes · Sistema Avícola</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="style.js"></script>
+</head>
+<body>
+<header class="top">
+  <div><div class="biz">Mi Granja</div><div class="prod">Sistema avícola</div></div>
+  <div class="date"></div>
+</header>
+<main class="page">
+  <section class="card">
+    <h2>Resumen</h2>
+    <div class="kpis">
+      <div class="kpi"><span class="l">Lotes activos</span><b id="kAct">0</b></div>
+      <div class="kpi"><span class="l">Invertido en activos</span><b id="kInv">$0</b></div>
+      <div class="kpi full"><span class="l">Ganancia acumulada</span><b id="kGan">$0</b></div>
+    </div>
+  </section>
+  <section class="card">
+    <h2>Lotes activos</h2>
+    <div id="lotesList"></div>
+  </section>
+  <section class="card">
+    <h2>Cerrados</h2>
+    <div id="cerradosList"></div>
+  </section>
+</main>
+<script src="core.js"></script>
+<script src="lotes2.js"></script>
+</body>
+</html>

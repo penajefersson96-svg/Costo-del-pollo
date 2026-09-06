@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1E5631">
+<title>Inventario · Sistema Avícola</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="style.js"></script>
+</head>
+<body>
+<header class="top">
+  <div><div class="biz">Mi Granja</div><div class="prod">Sistema avícola</div></div>
+  <div class="date"></div>
+</header>
+<main class="page">
+  <section class="card">
+    <h2>Artículos y stock</h2>
+    <div id="itemsList"></div>
+    <h2 style="margin-top:14px" id="formTitle">Nuevo artículo</h2>
+    <div class="grid2">
+      <input type="text" id="iNom" placeholder="Nombre (ej. Maíz, Vinagre)">
+      <select id="iUn"><option value="kg">kg</option><option value="L">L</option><option value="dosis">dosis</option></select>
+    </div>
+    <div class="grid3" style="margin-top:8px">
+      <div class="field"><label for="iAuto">Auto-descuento</label><select id="iAuto"><option value="1">Sí</option><option value="0">No</option></select></div>
+      <div class="field"><label for="iG">Gramos/pollo/día</label><input type="number" id="iG" inputmode="decimal" placeholder="0"></div>
+      <div class="field"><label for="iFreq">Días/semana</label><input type="number" id="iFreq" inputmode="numeric" min="1" max="7" value="7"></div>
+    </div>
+    <div class="grid2">
+      <button class="btn btn-p btn-w" id="btnItem" type="button">Agregar artículo</button>
+      <button class="btn btn-g btn-w" id="btnCancel" type="button" hidden>Cancelar edición</button>
+    </div>
+  </section>
+  <section class="card">
+    <h2>Registrar compra (entra stock)</h2>
+    <div class="field"><label for="cItem">Artículo</label><select id="cItem"></select></div>
+    <div class="grid2">
+      <div class="field"><label for="cSacos">N° de sacos</label><input type="number" id="cSacos" inputmode="decimal" placeholder="0"></div>
+      <div class="field"><label for="cPeso">Peso por saco</label><input type="number" id="cPeso" inputmode="decimal" placeholder="0"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label for="cFec">Fecha</label><input type="date" id="cFec"></div>
+      <div class="field"><label for="cCosto">Costo total</label><input type="number" id="cCosto" inputmode="decimal" placeholder="$0"></div>
+    </div>
+    <p class="muted">Entran al stock: <b id="cTotal">0</b> <span id="cUn">kg</span></p>
+    <button class="btn btn-p btn-w" id="btnCompra" type="button">Registrar compra</button>
+  </section>
+  <section class="card">
+    <h2>Consumo manual / extras</h2>
+    <div class="grid2">
+      <div class="field"><label for="dFec">Fecha</label><input type="date" id="dFec"></div>
+      <div class="field"><label for="dLote">Lote</label><select id="dLote"></select></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label for="dItem">Artículo</label><select id="dItem"></select></div>
+      <div class="field"><label for="dCant">Cantidad</label><input type="number" id="dCant" inputmode="decimal" placeholder="0"></div>
+    </div>
+    <div class="field"><label for="dNota">Motivo (de más, daño, derrame…)</label><input type="text" id="dNota" placeholder="Ej. se dañó con la lluvia"></div>
+    <p class="muted">Sugerido según el lote: <b id="dSug">—</b></p>
+    <button class="btn btn-p btn-w" id="btnConsumo" type="button">Registrar consumo</button>
+  </section>
+  <section class="card">
+    <h2>Alertas de stock</h2>
+    <div id="alertasInv"></div>
+  </section>
+  <section class="card">
+    <h2>Historial manual</h2>
+    <div class="tblwrap" id="histTbl"></div>
+  </section>
+</main>
+<script src="core.js"></script>
+<script src="inv2.js"></script>
+</body>
+</html>

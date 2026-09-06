@@ -3,227 +3,114 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#1E4620">
-<title>costó del pollo · Pollo de Engorde</title>
-<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
-<style>
-:root{--ink:#232A1C;--i2:#57604A;--pap:#F8F2E1;--card:#FFFDF5;--g2:#2F7D32;--g3:#E9F3E1;--ye:#FFC63C;--y2:#F0A80A;--y3:#FFF3CC;--re:#C8482F;--r3:#FBE9E3}
-*{box-sizing:border-box;margin:0}
-body{font:16px/1.5 Nunito,system-ui,sans-serif;color:var(--ink);background:var(--pap);background-image:radial-gradient(rgba(160,140,80,.2) 1.1px,transparent 1.4px);background-size:22px 22px;padding-bottom:112px}
-header{position:relative;overflow:hidden;color:#FCF7E6;background:linear-gradient(155deg,#1E4620,#2A632C 60%,#35792F);padding:18px 16px 30px}
-.hi{max-width:640px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:10px}
-.kick{display:inline-block;font-size:.62rem;font-weight:900;letter-spacing:.2em;background:var(--ye);color:var(--ink);border:2px solid var(--ink);padding:3px 9px;border-radius:7px;transform:rotate(-2deg)}
-h1{font-family:'Alfa Slab One',Rockwell,serif;font-size:clamp(1.8rem,7.5vw,2.6rem);margin:.25em 0 .1em}
-h1 em{font-style:normal;color:var(--ye)}
-.tl{font-size:.86rem;font-weight:700;opacity:.92}
-.meta{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
-.pill{display:inline-flex;align-items:center;gap:6px;font-size:.7rem;font-weight:800;border:1.5px solid rgba(255,255,255,.4);border-radius:99px;padding:4px 10px}
-.dot{width:8px;height:8px;border-radius:50%;background:#7BE07B;animation:pu 1.8s infinite}
-@keyframes pu{0%{box-shadow:0 0 0 0 rgba(123,224,123,.5)}70%{box-shadow:0 0 0 7px rgba(123,224,123,0)}100%{box-shadow:0 0 0 0 rgba(123,224,123,0)}}
-.chick{width:80px;height:88px;animation:bo 3.2s ease-in-out infinite}
-@keyframes bo{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-6px) rotate(2deg)}}
-.awn{position:absolute;left:0;right:0;bottom:0;height:14px;background:repeating-linear-gradient(90deg,var(--ye) 0 22px,var(--g2) 22px 44px)}
-.awn::after{content:"";position:absolute;top:100%;left:0;right:0;height:10px;background:repeating-linear-gradient(90deg,var(--ye) 0 22px,var(--g2) 22px 44px);-webkit-mask:radial-gradient(11px at 50% 0,#000 98%,transparent) 0 0/22px 10px repeat-x;mask:radial-gradient(11px at 50% 0,#000 98%,transparent) 0 0/22px 10px repeat-x}
-main{max-width:640px;margin:auto;padding:20px 14px 0}
-.card{position:relative;background:var(--card);border:2px solid var(--ink);border-radius:16px;box-shadow:5px 6px 0 rgba(35,42,28,.14);padding:28px 16px 18px;margin:22px 0;animation:up .5s ease backwards}
-.card:nth-of-type(2){animation-delay:.05s}.card:nth-of-type(3){animation-delay:.1s}.card:nth-of-type(4){animation-delay:.15s}.card:nth-of-type(5){animation-delay:.2s}.card:nth-of-type(6){animation-delay:.25s}.card:nth-of-type(7){animation-delay:.3s}.card:nth-of-type(8){animation-delay:.35s}
-@keyframes up{from{opacity:0;transform:translateY(16px)}}
-.tag{position:absolute;top:-14px;left:12px;background:var(--ye);border:2px solid var(--ink);border-radius:9px;padding:4px 11px;font-weight:900;font-size:.78rem;box-shadow:3px 3px 0 rgba(35,42,28,.18);transform:rotate(-1.5deg)}
-.sub{font-size:.78rem;color:var(--i2);font-weight:700;margin-bottom:12px}
-.r2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.f{margin-bottom:12px}
-.lb{display:block;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:var(--i2);margin-bottom:4px}
-input,select{width:100%;padding:11px 12px;font:inherit;font-weight:800;color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:11px}
-input:focus,select:focus{outline:none;border-color:var(--g2);box-shadow:0 0 0 4px var(--y3)}
-input::placeholder{color:#B9B39C}
-input[type=number]{-moz-appearance:textfield}
-input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none}
-select{width:auto;padding:9px 8px;border-radius:9px;background:var(--y3);font-size:.85rem}
-.hint{font-size:.76rem;font-weight:800;color:var(--g2)}
-.fhc{display:none}
-/* Filas de insumos (tarjetitas) */
-.fr{border:2px solid var(--ink);border-radius:12px;background:#fff;padding:10px;margin-top:10px;animation:up .3s ease backwards}
-.fr .l1{display:flex;gap:7px;align-items:center}
-.fr .fn{flex:1;padding:9px 10px;font-size:.92rem}
-.fr .l2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:9px}
-.fr .l2 .lb{font-size:.58rem}
-.fr .l2 input{padding:9px 8px;font-size:.92rem;text-align:right}
-.fr .l3{margin-top:9px;font-size:.72rem;font-weight:800;color:var(--i2);border-top:1.5px dashed #E4DBBE;padding-top:7px}
-.fr .l3 b{font-family:'Alfa Slab One',serif;color:var(--g2);font-size:.8rem}
-.fd{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--ink);background:#fff;color:var(--re);font-weight:900;cursor:pointer}
-.fd:active{transform:scale(.88)}
-.strip{margin-top:12px;background:var(--y3);border:2px dashed var(--y2);border-radius:12px;padding:10px 12px;font-size:.82rem;font-weight:800}
-.strip b{font-family:'Alfa Slab One',serif;color:#8A6400}
-.addb{width:100%;margin-top:10px;padding:10px;font:inherit;font-weight:900;font-size:.9rem;background:#fff;border:2px dashed var(--g2);border-radius:12px;color:var(--g2);cursor:pointer}
-/* Resultados */
-.rg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.ti{background:#fff;border:2px solid var(--ink);border-radius:13px;padding:11px 12px}
-.tl2{font-size:.6rem;font-weight:900;text-transform:uppercase;letter-spacing:.07em;color:var(--i2)}
-.tv{display:block;font-family:'Alfa Slab One',serif;font-size:1.35rem;margin-top:4px}
-.ts{display:block;font-size:.68rem;font-weight:700;color:var(--i2);margin-top:2px;min-height:.9em}
-.gan{grid-column:1/-1;border-width:3px;padding:14px;text-align:center}
-.gan .tv{font-size:2rem}
-.gan.pos{background:var(--g3);border-color:var(--g2)}.gan.pos .tv{color:var(--g2)}
-.gan.neg{background:var(--r3);border-color:var(--re)}.gan.neg .tv{color:var(--re)}
-.chips{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:9px}
-.chip{font-size:.7rem;font-weight:800;border:1.5px solid rgba(35,42,28,.28);border-radius:99px;padding:3px 10px;background:#fff}
-.tick{animation:ti2 .5s}
-@keyframes ti2{0%{background:var(--y3)}35%{transform:scale(1.03)}100%{background:transparent}}
-/* Guardados y respaldo */
-.cnt{background:var(--ink);color:var(--ye);border-radius:99px;font-size:.66rem;padding:2px 7px;font-family:Nunito,sans-serif}
-.bkr{display:flex;gap:8px;margin:2px 0 10px}
-.mini{font:inherit;font-weight:900;font-size:.72rem;padding:7px 10px;border-radius:9px;border:2px solid var(--ink);background:var(--ye);cursor:pointer;box-shadow:2px 2px 0 var(--ink)}
-.mini:active{transform:translate(2px,2px);box-shadow:none}
-.md{background:#fff;color:var(--re)}
-.mini.armed{background:var(--re);color:#fff}
-#bkP textarea{width:100%;font:11px/1.4 ui-monospace,monospace;padding:9px;border:2px solid var(--ink);border-radius:10px;margin-bottom:8px}
-.bka{display:flex;gap:7px;flex-wrap:wrap}
-.bkh{font-size:.7rem;color:var(--i2);font-weight:700;margin-top:8px}
-.sim{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border:2px solid var(--ink);border-radius:13px;padding:10px 11px;margin-top:9px}
-.sim h3{font-size:.92rem}
-.me{font-size:.68rem;font-weight:700;color:var(--i2)}
-.g{font-size:.82rem;font-weight:900}
-.pos2{color:var(--g2)}.neg2{color:var(--re)}
-.sa{display:flex;gap:6px}
-.empty{border:2px dashed #C9C0A3;border-radius:13px;padding:20px;text-align:center;font-size:.82rem;font-weight:700;color:var(--i2)}
-/* Comparación */
-.cr{padding:10px 0;border-bottom:1.5px dashed #E4DBBE}
-.cn{font-weight:900;font-size:.82rem;display:flex;justify-content:space-between;gap:8px}
-.cn small{color:var(--i2)}
-.cbl{display:flex;align-items:center;gap:6px;margin-top:5px}
-.cb{height:12px;border:1.5px solid var(--ink);border-radius:5px;width:var(--w);min-width:5px;animation:gr .8s ease backwards}
-@keyframes gr{from{width:0}}
-.cb.i{background:repeating-linear-gradient(45deg,var(--ye) 0 6px,#FFD97A 6px 12px)}
-.cb.g{background:repeating-linear-gradient(45deg,var(--g2) 0 6px,#4C9A4F 6px 12px)}
-.cv{font-size:.66rem;font-weight:800;color:var(--i2);white-space:nowrap}
-.cg{margin-top:5px;font-size:.78rem;font-weight:900}
-.leg{display:flex;gap:14px;margin-top:10px;font-size:.68rem;font-weight:800;color:var(--i2)}
-.sw{display:inline-block;width:11px;height:11px;border:1.5px solid var(--ink);border-radius:3px;vertical-align:-2px;margin-right:4px}
-.sw.i{background:var(--ye)}.sw.g{background:var(--g2)}
-/* Barra fija y toast */
-.bar{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;gap:10px;max-width:640px;margin:auto;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:rgba(248,242,225,.95);border-top:2px solid var(--ink)}
-.btn{font-family:'Alfa Slab One',serif;font-size:.95rem;padding:13px 10px;border:2px solid var(--ink);border-radius:13px;cursor:pointer;box-shadow:0 5px 0 var(--ink)}
-.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
-.bs{flex:1.5;background:var(--g2);color:#FFF8E3}
-.bc{flex:1;background:#fff;color:var(--re)}
-.bc.armed{background:var(--re);color:#fff}
-#toast{position:fixed;left:50%;bottom:92px;transform:translate(-50%,16px);z-index:80;background:var(--ink);color:#FFF6DC;font-weight:800;font-size:.84rem;padding:10px 16px;border-radius:99px;border:2px solid var(--ye);opacity:0;pointer-events:none;transition:.25s;max-width:88vw;text-align:center}
-#toast.show{opacity:1;transform:translate(-50%,0)}
-footer{max-width:640px;margin:auto;padding:14px;text-align:center;font-size:.72rem;font-weight:700;color:var(--i2)}
-</style>
+<meta name="theme-color" content="#1E5631">
+<title>Inicio · Sistema Avícola</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<script src="style.js"></script>
 </head>
 <body>
-<header>
-  <div class="hi">
-    <div>
-      <span class="kick">CUADERNO DE CAMPO</span>
-      <h1>Costó <em> del <em>Pollo</em></h1>
-      <p class="tl">Calculadora de costos · Pollo de engorde</p>
-      <div class="meta">
-        <span class="pill"><span class="dot"></span> 100% offline</span>
-        <span class="pill">📅 <span id="hoy">—</span></span>
-      </div>
-    </div>
-    <svg class="chick" viewBox="0 0 120 132" aria-hidden="true">
-      <path d="M46 112 l-6 13 M58 112 l-6 13 M74 112 l6 13 M62 112 l6 13" stroke="#E07A12" stroke-width="5" stroke-linecap="round" fill="none"/>
-      <circle cx="60" cy="70" r="39" fill="#FFC63C" stroke="#232A1C" stroke-width="4"/>
-      <ellipse cx="60" cy="84" rx="20" ry="14" fill="#FFE08A"/>
-      <circle cx="50" cy="62" r="4.5" fill="#232A1C"/><circle cx="70" cy="62" r="4.5" fill="#232A1C"/>
-      <path d="M52 71 l8 6 l-8 6 z" fill="#E07A12" stroke="#232A1C" stroke-width="3" stroke-linejoin="round"/>
-      <path d="M50 33 Q53 22 60 30 Q64 20 71 30" fill="none" stroke="#232A1C" stroke-width="4" stroke-linecap="round"/>
-    </svg>
-  </div>
-  <div class="awn"></div>
+<header class="top">
+  <div><div class="biz">Mi Granja</div><div class="prod">Sistema avícola</div></div>
+  <div class="date"></div>
 </header>
-
-<main>
+<main class="page">
+  <div id="alertas"></div>
+    <section class="card" id="pendCard" style="display:none">
+    <h2>Aprobaciones pendientes</h2>
+    <div id="pendList"></div>
+  </section>
   <section class="card">
-    <span class="tag">🐣 1 · Lote</span>
-    <p class="sub">Todo se recalcula al instante mientras escribes.</p>
-    <div class="r2">
-      <div class="f"><label class="lb" for="fNombre">Nombre del lote</label><input type="text" id="fNombre" placeholder="Ej. Galpón A"></div>
-      <div class="f"><label class="lb" for="fFecha">Fecha de inicio</label><input type="text" id="fFecha"></div>
+    <h2>Lotes activos</h2>
+    <div id="lotesList"></div>
+  </section>
+  <section class="card">
+    <h2>Configuración</h2>
+    <div class="field"><label for="negName">Nombre del negocio</label><input type="text" id="negName" placeholder="Mi Granja"></div>
+    <button class="btn btn-p btn-w" id="btnNeg" type="button">Guardar nombre</button>
+        <button class="btn btn-d btn-w" id="btnReset" type="button" style="margin-top:8px">Empezar de cero </button>
+  </section>
+  <section class="card">
+    <h2>Respaldo</h2>
+    <p class="muted">Guarda un archivo con todos tus lotes y restáuralo desde la app cuando quieras.</p>
+    <div class="grid2" style="margin-top:10px">
+      <button class="btn btn-p" id="btnDown" type="button">Guardar archivo</button>
+      <button class="btn btn-g" id="btnFile" type="button">Restaurar archivo</button>
     </div>
-    <div class="r2">
-      <div class="f"><label class="lb" for="fN">Pollitos comprados (N inicial)</label><input type="number" id="fN" inputmode="numeric" min="0" step="any" placeholder="0"></div>
-      <div class="f"><label class="lb" for="fM">Mortalidad (muertos)</label><input type="number" id="fM" inputmode="numeric" min="0" step="any" placeholder="0"></div>
-    </div>
-  </section>
-
-  <section class="card">
-    <span class="tag">💵 2 · Costos del lote</span>
-    <div class="f"><label class="lb" for="fCP">Costo total de los pollitos</label><input type="number" id="fCP" inputmode="decimal" min="0" step="any" placeholder="$ 0.00"></div>
-    <div class="f"><label class="lb" for="fMD">Medicinas, vacunas, aditivos y servicios</label><input type="number" id="fMD" inputmode="decimal" min="0" step="any" placeholder="$ 0.00"></div>
-  </section>
-
-  <section class="card">
-    <span class="tag">🌾 3 · Alimento por pollo</span>
-    <p class="sub">Lo que come <b>un pollo</b> en el ciclo. Se multiplica solo por <b id="fv">0</b> pollos vivos.</p>
-    <div class="fhc"><span></span><span>Insumo</span><span>Kg/pollo</span><span>$ por kg</span><span>Total</span></div>
-    <div id="feedRows"></div>
-    <button class="addb" id="btnAdd" type="button">＋ Agregar insumo (melaza, sal, vitaminas…)</button>
-    <div class="strip">🌽 <b id="s1">0</b> kg por pollo · 📦 <b id="s2">0</b> kg totales · 💰 <b id="s3">$0,00</b></div>
-  </section>
-
-  <section class="card">
-    <span class="tag">⚖️ 4 · Venta</span>
-    <div class="r2">
-      <div class="f"><label class="lb" for="fKG">Kg totales de carne</label><input type="number" id="fKG" inputmode="decimal" min="0" step="any" placeholder="0.0"></div>
-      <div class="f"><label class="lb" for="fPR">Precio de venta por kg</label><input type="number" id="fPR" inputmode="decimal" min="0" step="any" placeholder="$ 0.00"></div>
-    </div>
-    <span class="hint">🐔 Peso medio por pollo: <span id="pm">—</span></span>
-  </section>
-
-  <section class="card">
-    <span class="tag">📊 Resultados</span>
-    <div class="rg">
-      <div class="ti"><span class="tl2">🐓 Pollos vivos</span><span class="tv" id="rV">0</span><span class="ts" id="rVsub">—</span></div>
-      <div class="ti"><span class="tl2">💰 Inversión total</span><span class="tv" id="rI">$0,00</span><span class="ts" id="rIsub">—</span></div>
-      <div class="ti"><span class="tl2">🌾 Alimento por pollo</span><span class="tv" id="rC">0 kg</span><span class="ts" id="rCsub">—</span></div>
-      <div class="ti"><span class="tl2">🐔 Costo por pollo</span><span class="tv" id="rP">$0,00</span><span class="ts">inversión ÷ vivos</span></div>
-      <div class="ti"><span class="tl2">⚖️ Costo por kg carne</span><span class="tv" id="rK">—</span><span class="ts" id="rKsub">—</span></div>
-      <div class="ti"><span class="tl2">📈 Ingreso estimado</span><span class="tv" id="rIn">$0,00</span><span class="ts">kg × precio</span></div>
-      <div class="ti gan" id="gc"><span class="tl2">🏆 Ganancia neta</span><span class="tv" id="rG">$0,00</span>
-        <div class="chips"><span class="chip" id="chM">Margen: —</span><span class="chip" id="chP">Por pollo: —</span></div>
+    <input type="file" id="bkFile" accept=".json,application/json" hidden>
+    <details style="margin-top:12px"><summary class="muted">Opción manual (copiar y pegar)</summary>
+      <div class="grid2" style="margin-top:10px">
+        <button class="btn btn-g" id="btnExp" type="button">Copiar texto</button>
+        <button class="btn btn-g" id="btnImp" type="button">Pegar e importar</button>
       </div>
-    </div>
-  </section>
-
-  <section class="card">
-    <span class="tag">🗂️ Guardados <span class="cnt" id="cnt">0</span></span>
-    <p class="sub">Viven en este teléfono. Usa 📤 para no perderlos si borras la app.</p>
-    <div class="bkr">
-      <button class="mini" id="btnExp" type="button">📤 Respaldo</button>
-      <button class="mini" id="btnImp" type="button">📥 Restaurar</button>
-    </div>
-    <div id="bkP" hidden>
-      <textarea id="bkText" rows="5" spellcheck="false"></textarea>
-      <div class="bka">
-        <button class="mini" id="bkCopy" type="button">Copiar</button>
-        <button class="mini" id="bkDown" type="button">⬇ Archivo</button>
-        <button class="mini" id="bkRest" type="button" hidden>✔ Restaurar</button>
-        <button class="mini md" id="bkClose" type="button">Cerrar</button>
-      </div>
-      <p class="bkh" id="bkHint"></p>
-    </div>
-    <div id="savedList"></div>
-  </section>
-
-  <section class="card">
-    <span class="tag">📈 Comparación de lotes</span>
-    <div id="chart"></div>
-    <div class="leg"><span><i class="sw i"></i>Inversión</span><span><i class="sw g"></i>Ingreso</span></div>
+      <textarea id="bkText" rows="4" style="margin-top:10px" placeholder="Pega aquí un respaldo…"></textarea>
+    </details>
   </section>
 </main>
-
-<footer>Hecho para productores 🐔 · Offline · Usa 📤 Respaldo antes de reinstalar</footer>
-
-<div class="bar">
-  <button class="btn bc" id="btnClear" type="button">🧹 Limpiar</button>
-  <button class="btn bs" id="btnSave" type="button">💾 Guardar simulación</button>
-</div>
-<div id="toast" role="status"></div>
-
-<script src="app.js"></script>
+<nav class="nav">
+  <a href="inicio.html"><svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V21h-5v-6h-4v6H3z"/></svg><span>Inicio</span></a>
+  <a href="calculo2.html"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></svg><span>Cálculo</span></a>
+  <a href="lotes2.html"><svg viewBox="0 0 24 24"><path d="M4 8h16M4 12h16M4 16h16"/></svg><span>Lotes</span></a>
+</nav>
+<script src="core.js"></script>
+<script>
+/* ══ Página Inicio ══ */
+$('#negName').value=negocio();
+$('#btnNeg').onclick=()=>{setNegocio($('#negName').value);toast('Nombre guardado: '+negocio())};
+function filaLote(s){
+  const r=calcLote(s.data),sem=semaforo(r.mp);
+  const lbl=sem==='ok'?'OK':sem==='warn'?'ALERTA':'CRÍTICO';
+  return '<div class="item"><div><div class="t">'+esc(s.nombre)+'</div><div class="s">Día '+r.cd+' · '+nf0.format(r.V)+' vivos · mort. '+nf2.format(r.mp)+'%</div></div><div style="text-align:right"><span class="badge b-'+sem+'"><i></i>'+lbl+'</span><div class="s '+(r.gan>=0?'pos':'neg')+'">'+(r.gan>=0?'▲':'▼')+' '+smart(r.gan)+'</div></div></div>';
+}
+function render(){
+  const saved=lotes();
+  $('#lotesList').innerHTML=saved.length?saved.map(filaLote).join(''):'<p class="muted">Aún no hay lotes guardados. Créalo en Cálculo.</p>';
+  let al='';
+  saved.forEach(s=>{const r=calcLote(s.data);if(r.mp>8)al+='<div class="alert">Alerta '+esc(s.nombre)+': mortalidad '+nf2.format(r.mp)+'%, revisa el galpón.</div>'});
+  $('#alertas').innerHTML=al;
+}
+$('#btnDown').onclick=()=>{const url=URL.createObjectURL(new Blob([exportTxt()],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='respaldo-avipro.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);toast('Archivo guardado en Descargas')};
+$('#btnFile').onclick=()=>$('#bkFile').click();
+$('#bkFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const n=importTxt(await f.text());render();toast('Restaurado: '+n+' lotes')}catch(err){toast('Archivo no válido')}e.target.value=''};
+$('#btnExp').onclick=()=>{const t=exportTxt();if(navigator.clipboard){navigator.clipboard.writeText(t).then(()=>toast('Respaldo copiado')).catch(()=>{$('#bkText').value=t})}else{$('#bkText').value=t}};
+$('#btnImp').onclick=()=>{try{const n=importTxt($('#bkText').value);$('#bkText').value='';render();toast('Respaldo importado: '+n+' lotes')}catch(e){toast('Texto no válido')}};
+render();
+$('#btnReset').onclick=e=>{const b=e.target;if(b.dataset.arm){localStorage.removeItem('pc_d3');localStorage.removeItem('pc_s3');localStorage.removeItem('pc_inv2');toast('Datos borrados: listo para empezar de verdad');setTimeout(()=>location.reload(),600)}else{b.dataset.arm=1;b.textContent='¿Seguro? Se borra todo lo de este teléfono';setTimeout(()=>{b.textContent='Empezar de cero';delete b.dataset.arm},2500)}};
+$('#btnDown').onclick=async()=>{const t=exportTxt();try{const f=new File([t],'respaldo-avipro.json',{type:'application/json'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'Respaldo'});return}}catch(err){}const url=URL.createObjectURL(new Blob([t],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='respaldo-avipro.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);toast('Revisa Descargas o elige dónde guardarlo')};
+function ejecutar(clave){
+  if(clave==='reset'){localStorage.removeItem('pc_d3');localStorage.removeItem('pc_s3');localStorage.removeItem('pc_inv2');toast('Datos borrados: listo para empezar de verdad');setTimeout(()=>location.reload(),600)}
+  if(clave==='nombre'){setNegocio($('#negName').value);toast('Nombre cambiado: '+negocio())}
+}
+function pintaPend(){
+  const s=sesion(),card=$('#pendCard');if(!card)return;
+  if(!s||s.rol!=='admin'||!admins().length){card.style.display='none';return}
+  const lista=pend().filter(x=>x.por!==s.id);
+  card.style.display=lista.length?'block':'none';
+  $('#pendList').innerHTML=lista.map(p=>'<div class="item"><div><div class="t">'+esc(p.desc)+'</div><div class="s">Solicita: '+esc(p.porNom)+'</div></div><button class="mini" data-ap="'+esc(p.clave)+'">Aprobar</button></div>').join('');
+}
+$('#btnReset').onclick=e=>{const b=e.target,ads=admins(),s=sesion();
+  if(ads.length&&(!s||s.rol!=='admin')){toast('Solo administradores');return}
+  if(ads.length>=2){pedirAccion('reset','Empezar de cero (borrar datos)');pintaPend();return}
+  if(b.dataset.arm){ejecutar('reset')}else{b.dataset.arm=1;b.textContent='¿Seguro? Se borra todo';setTimeout(()=>{b.textContent='Empezar de cero (borrar prueba)';delete b.dataset.arm},2500)}};
+$('#btnNeg').onclick=()=>{const ads=admins(),s=sesion();
+  if(ads.length&&(!s||s.rol!=='admin')){toast('Solo administradores');return}
+  if(ads.length>=2){pedirAccion('nombre','Cambiar el nombre del negocio');pintaPend();return}
+  setNegocio($('#negName').value);toast('Nombre guardado: '+negocio())};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-ap]');if(!b)return;const s=sesion();if(!s||s.rol!=='admin'){toast('Solo administradores');return}ejecutar(b.dataset.ap);aprobarAccion(b.dataset.ap);pintaPend();toast('Aprobado y ejecutado')});
+pintaPend();
+(function(){
+  const s=sesion();if(!s||s.rol==='admin')return;
+  const cfg=$('#btnNeg');if(cfg)cfg.closest('.card').style.display='none';
+  const bk=$('#btnDown');if(bk)bk.closest('.card').style.display='none';
+  document.querySelectorAll('#lotesList .pos,#lotesList .neg').forEach(el=>el.style.display='none');
+})();
+$('#btnDown').onclick=async()=>{
+  const t=exportTxt();
+  try{const f=new File([t],'respaldo-avipro.json',{type:'application/json'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'Respaldo'});return}}catch(e){}
+  try{const url=URL.createObjectURL(new Blob([t],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='respaldo-avipro.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000)}catch(e){}
+  $('#bkText').value=t;toast('Si no descargó: el respaldo quedó en el cuadro manual; cópialo y guárdalo en Drive o Notas');
+};
+</script>
 </body>
-  </html>
+</html>

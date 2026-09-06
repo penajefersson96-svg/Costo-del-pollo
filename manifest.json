@@ -1,11 +1,10 @@
 {
-  "name": "Precio del Pollo · Calculadora de costos",
-  "short_name": "Precio Pollo",
-  "start_url": ".",
-  "scope": ".",
+  "name": "Sistema Avícola",
+  "short_name": "Avícola",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#F8F2E1",
-  "theme_color": "#1E4620",
-  "lang": "es",
+  "background_color": "#F3F5F2",
+  "theme_color": "#1E5631",
+  "description": "Calculadora de costos y control de lotes para pollo de engorde.",
   "icons": [{"src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}]
 }
