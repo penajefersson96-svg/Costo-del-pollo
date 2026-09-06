@@ -169,3 +169,34 @@ $('#bkDown').onclick=async()=>{
     }
   }catch(e){toast('📋 Mejor usa Copiar y pégalo en Notas/Drive');}
 };
+/* ══ PARCHE 5 · descarga directa ══ */
+$('#bkDown').onclick=()=>{
+  const txt=$('#bkText').value;
+  const url=URL.createObjectURL(new Blob([txt],{type:'application/json'}));
+  const a=document.createElement('a');
+  a.href=url;a.download='precio-del-pollo-respaldo.json';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),4000);
+  toast('⬇ Revisa tus Descargas');
+};
+/* ══ PARCHE 6 · restaurar desde archivo ══ */
+const bkText=$('#bkText');
+if(!$('#bkFileInput')){
+  const wrap=document.createElement('div');
+  wrap.innerHTML='<button class="mini" id="bkFileBtn" type="button" hidden>📂 Cargar archivo</button><input type="file" id="bkFileInput" accept=".json,application/json" hidden>';
+  bkText.parentElement.insertBefore(wrap,bkText.nextSibling);
+}
+const fileBtn=$('#bkFileBtn'),fileIn=$('#bkFileInput');
+const _openBK=openBK;
+openBK=function(mode){_openBK(mode);fileBtn.hidden=(mode==='e')};
+fileBtn.onclick=()=>fileIn.click();
+fileIn.onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{
+    const txt=await f.text();
+    JSON.parse(txt);
+    bkText.value=txt;
+    toast('✅ Archivo cargado, toca ✔ Restaurar');
+  }catch(err){toast('⚠️ Archivo no válido');}
+  fileIn.value='';
+};
