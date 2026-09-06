@@ -91,7 +91,7 @@ function buildSide(){
   btn.onclick=()=>{side.classList.add('open');back.classList.add('open')};
   document.querySelector('.top').appendChild(btn);
 }
-document.addEventListener('DOMContentLoaded',()=>{pintaTop();buildSide();asegurarLogin();agregarSalir()});
+document.addEventListener('DOMContentLoaded',()=>{pintaTop();buildSide();agregarSalir()});
 /* ══ Login local ══ */
 function sesion(){return loadJSON('pc_session',null)}
 function salir(){localStorage.removeItem('pc_session');location.reload()}
