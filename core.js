@@ -67,7 +67,7 @@ function canvasReporte(nombre,r){
   y+=150;
   x.fillStyle=r.gan>=0?'#1E7A3C':'#C0392B';x.font='800 64px '+F;
   x.fillText((r.gan>=0?'Ganancia ':'Pérdida ')+smart(Math.abs(r.gan)),60,y);
-x.fillText('Generado con 'Sistema Avícola',60,H-50);
+x.fillText('Generado con Sistema Avícola',60,H-50);
   return c;
 }
 async function compartirReporte(nombre,r){
