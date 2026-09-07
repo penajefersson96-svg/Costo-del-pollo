@@ -19,8 +19,8 @@ $('#btnUser').onclick=()=>{
 };
 $('#btnVer').onclick=()=>{const c=$('#rolesCard');const open=c.style.display!=='none';c.style.display=open?'none':'block';$('#btnVer').textContent=open?'Ver más':'Ver menos'};
 $('#btnShare').onclick=async()=>{
-  const txt='Instala la app de la granja: '+LINK_APP;
-  try{if(navigator.share){await navigator.share({title:'App de la granja',text:txt,url:LINK_APP});return}}catch(e){}
+    const txt=LINK_APP;
+  try{if(navigator.share){await navigator.share({url:LINK_APP});return}}catch(e){}
   if(navigator.clipboard){navigator.clipboard.writeText(txt).then(()=>toast('Link copiado, compártelo por WhatsApp'))}else toast('Link: '+LINK_APP)};
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-du]');if(!b)return;
