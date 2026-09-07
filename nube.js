@@ -14,6 +14,8 @@
   function genCode(){return 'AVI-'+Math.floor(1000+Math.random()*9000)}
   function conTope(p,ms){return Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error('La nube tarda demasiado: revisa tu internet')),ms))])}
   let KICK=null;
+    window.addEventListener('error',e=>{try{toast('Error: '+e.message)}catch(_){}});
+  window.addEventListener('unhandledrejection',e=>{try{toast('Error interno: '+((e.reason&&e.reason.message)||e.reason))}catch(_){}});
   async function arrancar(){
     try{await fbListo}catch(e){}
     if(!window.db){mostrar('<h2>Conectando con la nube…</h2><p class="muted">Si esto no avanza, revisa tu internet.</p><button class="btn btn-p btn-w" onclick="location.reload()">Reintentar</button>');return}
@@ -22,26 +24,43 @@
     if(loadJSON('pc_justout',0)){localStorage.removeItem('pc_justout');pantallaInicio(t);return}
     FBA().onAuthStateChanged(async u=>{
       if(!u){try{const s=await conTope(FBD().collection('negocios/'+t.id+'/usuarios').limit(1).get(),10000);if(s.empty)pantallaPrimerAdmin(t);else pantallaLogin(t)}catch(e){pantallaLogin(t)}return}
+            if(window._verif){window._verif=0;return}
       const ok=loadJSON('pc_ok_'+u.uid,0);
       if(ok&&(Date.now()-ok)<6*3600*1000){continuar(u,FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid),window.NUBE_PERFIL||{});fondo(u,t);return}
       mostrar('<h2>Verificando sesión…</h2><p class="muted">Un momento.</p>');
       verificar(u,t,1);
     });
   }
-  function fondo(u,t){
-    conTope(FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid).get(),10000).then(d=>{
-      if(!d.exists||d.data().activo===false){salir();return}
-      window.NUBE_PERFIL=d.data();
+    function fondo(u,t){
+    conTope(FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid).get(),10000).then(async d=>{
+      if(!d.exists||d.data().activo===false){patear('<h2>Cuenta eliminada o suspendida</h2><p class="muted">Contacta a tu administrador.</p>');return}
+      const p=d.data();window.NUBE_PERFIL=p;
       const side=$('#side'),foot=side?side.querySelector('.side-foot'):null;
-      if(foot){const p=d.data();foot.textContent='Conectado: '+p.nom+' ('+(p.rol==='fundador'?'Fundador':p.rol==='admin'?'Admin':(p.ext?'Empleado +':'Empleado'))+')'}
+      if(foot)foot.textContent='Conectado: '+p.nom+' ('+(p.rol==='fundador'?'Fundador':p.rol==='admin'?'Admin':(p.ext?'Empleado +':'Empleado'))+')';
+      if(p.rol==='emp'||p.rol==='ext'){
+        try{const nd=await conTope(FBD().collection('negocios').doc(t.id).get(),10000);const hor=(nd.data()&&nd.data().horario)||{ini:'05:00',fin:'21:00'};const hm=new Date();const hh=('0'+hm.getHours()).slice(-2)+':'+('0'+hm.getMinutes()).slice(-2);
+        if(hh<hor.ini||hh>hor.fin){patear('<h2>Fuera de horario</h2><p class="muted">Tu jornada es de '+hor.ini+' a '+hor.fin+'.</p>');return}}catch(e){}
+      }
+      if(p.rol==='admin'||p.rol==='fundador'){const ent=loadJSON('pc_ent_'+u.uid,0);if(ent&&(Date.now()-ent)>6*3600*1000){patear('<h2>Sesión expirada</h2><p class="muted">Pasaron 6 horas: vuelve a entrar.</p>');return}}
     }).catch(()=>{});
   }
+  function patear(html){if(KICK){KICK();KICK=null}try{FBA().signOut()}catch(e){}mostrar(html)}
   async function verificar(u,t,intento){
+        try{
     const ref=FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid);
-    try{
       const d=await conTope(ref.get(),10000);
       if(!d.exists){await FBA().signOut();mostrar('<h2>Cuenta eliminada</h2><p class="muted">Tu administrador eliminó esta cuenta. Pide una nueva.</p>');return}
       const p=d.data(),s=p.sesion;
+            if(p.rol==='emp'||p.rol==='ext'){
+        const nd=await conTope(FBD().collection('negocios').doc(t.id).get(),10000);
+        const hor=(nd.data()&&nd.data().horario)||{ini:'05:00',fin:'21:00'};
+        const hm=new Date();const hh=('0'+hm.getHours()).slice(-2)+':'+('0'+hm.getMinutes()).slice(-2);
+        if(hh<hor.ini||hh>hor.fin){await FBA().signOut();mostrar('<h2>Fuera de horario</h2><p class="muted">Tu jornada es de '+hor.ini+' a '+hor.fin+'. Fuera de ese horario la app queda cerrada para empleados.</p>');return}
+      }
+      if(p.rol==='admin'||p.rol==='fundador'){
+        const ent=loadJSON('pc_ent_'+u.uid,0);
+        if(ent&&(Date.now()-ent)>6*3600*1000){await FBA().signOut();mostrar('<h2>Sesión expirada</h2><p class="muted">Por seguridad tu sesión terminó tras 6 horas. Vuelve a entrar.</p>');return}
+      }
       if(s&&s.dev&&s.dev!==devid()&&(Date.now()-s.ts)<12*3600*1000){
         if(p.rol==='admin'||p.rol==='fundador'){
           mostrar('<h2>Sesión abierta en otro sitio</h2><p class="muted">Tu cuenta ya está abierta en otro dispositivo. Si eres tú, entra aquí y se cerrará allá.</p><div class="grid2"><button class="btn btn-g" id="sdNo">Cancelar</button><button class="btn btn-p" id="sdSi">Soy yo, entrar aquí</button></div>');
@@ -66,6 +85,8 @@
     KICK=ref.onSnapshot(snap=>{if(!snap.exists||snap.data().activo===false){KICK=null;salir()}});
     window.NUBE_USER=u;window.NUBE_PERFIL=p;
     saveJSON('pc_ok_'+u.uid,Date.now());
+        if(!loadJSON('pc_ent_'+u.uid,0))saveJSON('pc_ent_'+u.uid,Date.now());
+    window._verif=0;
     ocultar();asegurarSalirNube(u);
     setTimeout(()=>{if(window.lanzarTutorial)lanzarTutorial()},900);
   }
@@ -143,7 +164,8 @@
           FBA().signInWithEmailAndPassword(correo($('#lgU2').value.trim(),t.id),$('#lgP2').value),
           new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),15000))
         ]);
-        toast('Bienvenido');
+                toast('Bienvenido');
+        const uu=FBA().currentUser;if(uu){window._verif=1;verificar(uu,t,1)}
       }catch(err){
         $('#lgB2').textContent='Entrar';
         const er=$('#lgErr');
@@ -165,7 +187,8 @@
   }
   function salir(){
     const t=tenant(),u=FBA()?FBA().currentUser:null;
-    if(u){localStorage.removeItem('pc_ok_'+u.uid);if(t){try{FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid).update({sesion:null})}catch(e){}}}
+    if(u){localStorage.removeItem('pc_ok_'+u.uid);
+          localStorage.removeItem('pc_ent_'+u.uid);if(t){try{FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid).update({sesion:null})}catch(e){}}}
     if(KICK){KICK();KICK=null}
     FBA().signOut();localStorage.removeItem('pc_session');saveJSON('pc_justout',1);location.reload();
   }

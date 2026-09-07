@@ -34,6 +34,7 @@
     const esp=setInterval(()=>{
       const perfil=window.NUBE_PERFIL;if(!perfil)return;
       clearInterval(esp);
+            (async()=>{try{const t=loadJSON('pc_tenant',null);const s=await db.collection('negocios/'+t.id+'/usuarios').get();const loc=loadJSON('pc_users',[]);let ch=false;s.docs.forEach(d=>{const p=d.data();if(!loc.some(x=>x.usu===p.usu)){loc.push({id:d.id,nom:p.nom,ced:p.ced||'',usu:p.usu,pin:'••••••',rol:p.rol==='fundador'?'admin':p.rol,ext:!!p.ext});ch=true}});if(ch){saveJSON('pc_users',loc);if(typeof render==='function')render()}}catch(e){}})();
       if(perfil.rol!=='admin'&&perfil.rol!=='fundador')return;
       const card=nb.closest('.card');if(!card||$('#csBtn'))return;
       const wrap=document.createElement('div');wrap.style.marginTop='12px';
