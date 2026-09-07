@@ -1,4 +1,4 @@
-/* ══ nube.js · puertas, sesión exclusiva, topes y recuperación ══ */
+/* ══ nube.js · versión final y completa ══ */
 (function(){
   const OV=document.createElement('div');OV.id='loginOv';OV.style.display='none';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(OV));
@@ -13,9 +13,10 @@
   function FBA(){if(!window.auth&&typeof firebase!=='undefined'&&firebase.auth)window.auth=firebase.auth();return window.auth}
   function genCode(){return 'AVI-'+Math.floor(1000+Math.random()*9000)}
   function conTope(p,ms){return Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error('La nube tarda demasiado: revisa tu internet')),ms))])}
-  let KICK=null;
-    window.addEventListener('error',e=>{try{toast('Error: '+e.message)}catch(_){}});
+  window.addEventListener('error',e=>{try{toast('Error: '+e.message)}catch(_){}});
   window.addEventListener('unhandledrejection',e=>{try{toast('Error interno: '+((e.reason&&e.reason.message)||e.reason))}catch(_){}});
+  let KICK=null;
+  function patear(html){if(KICK){KICK();KICK=null}try{FBA().signOut()}catch(e){}mostrar(html)}
   async function arrancar(){
     try{await fbListo}catch(e){}
     if(!window.db){mostrar('<h2>Conectando con la nube…</h2><p class="muted">Si esto no avanza, revisa tu internet.</p><button class="btn btn-p btn-w" onclick="location.reload()">Reintentar</button>');return}
@@ -24,14 +25,14 @@
     if(loadJSON('pc_justout',0)){localStorage.removeItem('pc_justout');pantallaInicio(t);return}
     FBA().onAuthStateChanged(async u=>{
       if(!u){try{const s=await conTope(FBD().collection('negocios/'+t.id+'/usuarios').limit(1).get(),10000);if(s.empty)pantallaPrimerAdmin(t);else pantallaLogin(t)}catch(e){pantallaLogin(t)}return}
-            if(window._verif){window._verif=0;return}
+      if(window._verif){window._verif=0;return}
       const ok=loadJSON('pc_ok_'+u.uid,0);
-      if(ok&&(Date.now()-ok)<6*3600*1000){continuar(u,FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid),window.NUBE_PERFIL||{});fondo(u,t);return}
+      if(ok&&(Date.now()-ok)<6*3600*1000){continuar(u,FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid),window.NUBE_PERFIL||{});fondo(u,t,0);return}
       mostrar('<h2>Verificando sesión…</h2><p class="muted">Un momento.</p>');
       verificar(u,t,1);
     });
   }
-    function fondo(u,t,n){
+  function fondo(u,t,n){
     conTope(FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid).get(),10000).then(async d=>{
       if(!d.exists||d.data().activo===false){patear('<h2>Cuenta eliminada o suspendida</h2><p class="muted">Contacta a tu administrador.</p>');return}
       const p=d.data();window.NUBE_PERFIL=p;
@@ -41,13 +42,17 @@
         try{const nd=await conTope(FBD().collection('negocios').doc(t.id).get(),10000);const hor=(nd.data()&&nd.data().horario)||{ini:'05:00',fin:'21:00'};const hm=new Date();const hh=('0'+hm.getHours()).slice(-2)+':'+('0'+hm.getMinutes()).slice(-2);
         if(hh<hor.ini||hh>hor.fin){patear('<h2>Fuera de horario</h2><p class="muted">Tu jornada es de '+hor.ini+' a '+hor.fin+'.</p>');return}}catch(e){}
       }
-      if(p.rol==='admin'||p.rol==='fundador'){const ent=loadJSON('pc_ent_'+u.uid,0);if(ent&&(Date.now()-ent)>6*3600*1000){patear('<h2>Sesión expirada</h2><p class="muted">Pasaron 6 horas: vuelve a entrar.</p>');return}}
+      if(p.rol==='admin'||p.rol==='fundador'){
+        const ent=loadJSON('pc_ent_'+u.uid,0);
+        if(ent&&(Date.now()-ent)>6*3600*1000){patear('<h2>Sesión expirada</h2><p class="muted">Pasaron 6 horas: vuelve a entrar.</p>');return}
+        const a=loadJSON('pc_act_'+u.uid,0);
+        if(a&&(Date.now()-a)>30*60*1000){patear('<h2>Sesión expirada</h2><p class="muted">Por inactividad prolongada. Vuelve a entrar.</p>');return}
+      }
     }).catch(()=>{if((n||0)<1)setTimeout(()=>fondo(u,t,(n||0)+1),5000)});
   }
-  function patear(html){if(KICK){KICK();KICK=null}try{FBA().signOut()}catch(e){}mostrar(html)}
   async function verificar(u,t,intento){
-        try{
-    const ref=FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid);
+    try{
+      const ref=FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid);
       const d=await conTope(ref.get(),10000);
       if(!d.exists){
         const vac=await conTope(FBD().collection('negocios/'+t.id+'/usuarios').limit(1).get(),10000);
@@ -64,7 +69,7 @@
         await FBA().signOut();mostrar('<h2>Cuenta eliminada</h2><p class="muted">Tu administrador eliminó esta cuenta. Pide una nueva.</p>');return;
       }
       const p=d.data(),s=p.sesion;
-            if(p.rol==='emp'||p.rol==='ext'){
+      if(p.rol==='emp'||p.rol==='ext'){
         const nd=await conTope(FBD().collection('negocios').doc(t.id).get(),10000);
         const hor=(nd.data()&&nd.data().horario)||{ini:'05:00',fin:'21:00'};
         const hm=new Date();const hh=('0'+hm.getHours()).slice(-2)+':'+('0'+hm.getMinutes()).slice(-2);
@@ -98,20 +103,20 @@
     KICK=ref.onSnapshot(snap=>{if(!snap.exists||snap.data().activo===false){KICK=null;salir()}});
     window.NUBE_USER=u;window.NUBE_PERFIL=p;
     saveJSON('pc_ok_'+u.uid,Date.now());
-        if(!loadJSON('pc_ent_'+u.uid,0))saveJSON('pc_ent_'+u.uid,Date.now());
+    if(!loadJSON('pc_ent_'+u.uid,0))saveJSON('pc_ent_'+u.uid,Date.now());
     window._verif=0;
-    ocultar();asegurarSalirNube(u);
-    setTimeout(()=>{if(window.lanzarTutorial)lanzarTutorial()},900);
-        const act=()=>saveJSON('pc_act_'+u.uid,Date.now());
+    const act=()=>saveJSON('pc_act_'+u.uid,Date.now());
     ['click','keydown','touchstart','scroll'].forEach(ev=>document.addEventListener(ev,act,{passive:true}));
     act();
-    setInterval(()=>{const p=window.NUBE_PERFIL;if(!p||(p.rol!=='admin'&&p.rol!=='fundador'))return;const a=loadJSON('pc_act_'+u.uid,0);if(a&&(Date.now()-a)>30*60*1000)patear('<h2>Sesión expirada</h2><p class="muted">Por inactividad prolongada. Vuelve a entrar.</p>')},60000);
+    setInterval(()=>{const q=window.NUBE_PERFIL;if(!q||(q.rol!=='admin'&&q.rol!=='fundador'))return;const a=loadJSON('pc_act_'+u.uid,0);if(a&&(Date.now()-a)>30*60*1000)patear('<h2>Sesión expirada</h2><p class="muted">Por inactividad prolongada. Vuelve a entrar.</p>')},60000);
+    ocultar();asegurarSalirNube(u);
+    setTimeout(()=>{if(window.lanzarTutorial)lanzarTutorial()},900);
   }
-  function pantallaInicio(t){
+    function pantallaInicio(t){
     mostrar('<h2>Sistema Avícola</h2><p class="muted">Bienvenido. Entra con el código de tu negocio o regístrate.</p><button class="btn btn-p btn-w" id="ncLogin">Iniciar sesión</button><button class="btn btn-g btn-w" style="margin-top:8px" id="ncReg">Registrarme</button><a class="btn btn-g btn-w" style="margin-top:8px;display:block" href="'+waLink('Hola, necesito ayuda con la app Sistema Avícola: no puedo entrar o no tengo mi código de negocio.')+'" target="_blank">¿Dudas? Escríbeme por WhatsApp</a>');
     $('#ncLogin').onclick=t?()=>pantallaLogin(t):pantallaCodigo;
     $('#ncReg').onclick=pantallaRegistro;
-        conTope(FBD().collection('negocios').limit(1).get(),10000).then(s=>{
+    conTope(FBD().collection('negocios').limit(1).get(),10000).then(s=>{
       if(s.empty&&!OV.querySelector('#ncFB')){
         const div=document.createElement('div');div.innerHTML='<button class="btn btn-g btn-w" style="margin-top:8px" id="ncFB">Soy fundador: crear mi negocio</button>';
         OV.querySelector('.loginCard').appendChild(div);
@@ -119,7 +124,7 @@
       }
     }).catch(()=>{});
   }
-    function formularioFundador(){
+  function formularioFundador(){
     mostrar('<h2>Crear mi negocio (fundador)</h2><div class="field"><label>Nombre del negocio</label><input id="fNom" value="Mi Granja"></div><div class="field"><label>Correo</label><input id="fMail" type="email"></div><div class="field"><label>Usuario</label><input id="fUsu" placeholder="fundador"></div><div class="field"><label>Clave (mín. 6)</label><input id="fPin" type="password"></div><button class="btn btn-p btn-w" id="fBtn">Crear y entrar</button>');
     $('#fBtn').onclick=async()=>{
       const nom=$('#fNom').value.trim(),mail=$('#fMail').value.trim(),usu=$('#fUsu').value.trim(),pin=$('#fPin').value;
@@ -202,7 +207,7 @@
           FBA().signInWithEmailAndPassword(correo($('#lgU2').value.trim(),t.id),$('#lgP2').value),
           new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),15000))
         ]);
-                toast('Bienvenido');
+        toast('Bienvenido');
         const uu=FBA().currentUser;if(uu){window._verif=1;verificar(uu,t,1)}
       }catch(err){
         $('#lgB2').textContent='Entrar';
@@ -227,6 +232,7 @@
         const er=$('#lgErr');
         if(er)er.textContent=err.message==='timeout'?'La red no responde: revisa tu internet y reintenta':'Usuario o clave incorrectos';
       }
+    };
   }
   async function asegurarSalirNube(u){
     const side=$('#side');if(!side||$('#sideOut'))return;
@@ -242,8 +248,7 @@
   }
   function salir(){
     const t=tenant(),u=FBA()?FBA().currentUser:null;
-    if(u){localStorage.removeItem('pc_ok_'+u.uid);
-          localStorage.removeItem('pc_ent_'+u.uid);if(t){try{FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid).update({sesion:null})}catch(e){}}}
+    if(u){localStorage.removeItem('pc_ok_'+u.uid);localStorage.removeItem('pc_ent_'+u.uid);if(t){try{FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid).update({sesion:null})}catch(e){}}}
     if(KICK){KICK();KICK=null}
     FBA().signOut();localStorage.removeItem('pc_session');saveJSON('pc_justout',1);location.reload();
   }
