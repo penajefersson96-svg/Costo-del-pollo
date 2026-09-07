@@ -1,30 +1,49 @@
-/* ══ usuarios2.js · equipo, roles y link ══ */
-const KU='pc_users';
-function users(){return loadJSON(KU,[])}
-function saveUsers(u){saveJSON(KU,u)}
-const LINK_APP='https://penajefersson96-svg.github.io/Sistema-Avicola/';
-function render(){
-  const u=users();
-  $('#usersList').innerHTML=u.length?u.map(x=>'<div class="item"><div><div class="t">'+esc(x.nom)+'</div><div class="s">C.I. '+esc(x.ced||'—')+' · @'+esc(x.usu||'—')+'</div></div><div style="display:flex;gap:6px;align-items:center"><span class="badge '+(x.rol==='admin'?'b-ok':'b-warn')+'"><i></i>'+(x.rol==='admin'?'Admin':(x.ext?'Empleado +':'Empleado'))+'</span><button class="mini d" data-du="'+x.id+'">✕</button></div></div>').join(''):'<p class="muted">Aún no hay usuarios. Crea el primero abajo.</p>';
-}
-$('#btnUser').onclick=()=>{
-  const nom=$('#uNom').value.trim(),ced=$('#uCed').value.trim(),rol=$('#uRol').value,ext=$('#uExt').checked,usu=$('#uUsu').value.trim(),pin=$('#uPin').value.trim();
-  if(!nom){toast('Escribe el nombre completo');return}
-  if(!usu){toast('Escribe el usuario');return}
-  if(pin.length<6){toast('Clave de al menos 6 dígitos');return}
-  const u=users();
-  if(u.some(x=>(x.usu||'').toLowerCase()===usu.toLowerCase())){toast('Ese usuario ya existe');return}
-  u.push({id:Date.now(),nom,ced,rol,ext,usu,pin});
-  saveUsers(u);['uNom','uCed','uUsu','uPin'].forEach(i=>$('#'+i).value='');render();toast('Usuario creado: '+nom);
-};
-$('#btnVer').onclick=()=>{const c=$('#rolesCard');const open=c.style.display!=='none';c.style.display=open?'none':'block';$('#btnVer').textContent=open?'Ver más':'Ver menos'};
-$('#btnShare').onclick=async()=>{
-    const txt=LINK_APP;
-  try{if(navigator.share){await navigator.share({url:LINK_APP});return}}catch(e){}
-  if(navigator.clipboard){navigator.clipboard.writeText(txt).then(()=>toast('Link copiado, compártelo por WhatsApp'))}else toast('Link: '+LINK_APP)};
-document.addEventListener('click',e=>{
-  const b=e.target.closest('[data-du]');if(!b)return;
-  if(b.dataset.arm){saveUsers(users().filter(x=>+x.id!==+b.dataset.du));render();toast('Usuario eliminado')}
-  else{b.dataset.arm=1;b.textContent='¿Seguro?';setTimeout(()=>{b.textContent='✕';delete b.dataset.arm},2200)}
-});
-render();
+/* ══ usuariosnube.js · usuarios unificados (nube + equipo) ══ */
+(function(){
+  function authSec(){if(!window._asec){window._asec=firebase.initializeApp(FB_CFG,'sec'+Date.now()).auth()}return window._asec}
+  const corr=(u,id)=>u.toLowerCase()+'@'+id+'.avicola.app';
+  function localPush(nom,usu,pin,rol,ext){
+    const arr=loadJSON('pc_users',[]);
+    arr.push({id:Date.now(),nom,usu,pin,rol,ext});
+    saveJSON('pc_users',arr);
+  }
+  function localDel(usu){saveJSON('pc_users',loadJSON('pc_users',[]).filter(x=>x.usu!==usu))}
+  async function lista(){
+    const t=loadJSON('pc_tenant',null);if(!t||!$('#cuList'))return;
+    try{
+      const s=await db.collection('negocios/'+t.id+'/usuarios').get();
+      $('#cuList').innerHTML='<h2 style="margin-top:10px">Equipo en la nube</h2>'+s.docs.map(d=>{const p=d.data();return '<div class="item"><div><div class="t">'+esc(p.nom)+'</div><div class="s">'+esc(p.usu)+' · '+(p.rol==='fundador'?'Fundador':p.rol==='admin'?'Admin':(p.ext?'Empleado +':'Empleado'))+'</div></div>'+(p.rol==='fundador'?'':'<button class="mini d" data-del="'+d.id+'" data-usu="'+esc(p.usu)+'">Eliminar</button>')+'</div>'}).join('');
+    }catch(e){}
+  }
+  document.addEventListener('DOMContentLoaded',()=>{
+    if(!$('#cuBtn'))return;
+    const ba=$('#btnAdd');if(ba){const c=ba.closest('.card');if(c)c.style.display='none'}
+    lista();
+    $('#cuBtn').onclick=async()=>{
+      const t=loadJSON('pc_tenant',null);if(!t){toast('Vincula primero');return}
+      const nom=$('#cuNom').value.trim(),usu=$('#cuUsu').value.trim(),pin=$('#cuPin').value,rol=$('#cuRol').value;
+      if(!nom||!usu||pin.length<6){toast('Nombre, usuario y clave de 6+');return}
+      localPush(nom,usu,pin,rol==='admin'?'admin':'emp',rol==='ext');
+      if(window.firebase){
+        try{
+          const cred=await authSec().createUserWithEmailAndPassword(corr(usu,t.id),pin);
+          await db.collection('negocios/'+t.id+'/usuarios').doc(cred.user.uid).set({uid:cred.user.uid,nom,usu,mail:'',rol,ext:rol==='ext',creado:Date.now()});
+          toast('Usuario creado en la nube y en el equipo');
+        }catch(e){localDel(usu);toast('Nube falló: '+e.message);return}
+      }else toast('Usuario creado solo en este equipo');
+      $('#cuNom').value=$('#cuUsu').value=$('#cuPin').value='';
+      lista();if(typeof render==='function')render();
+    };
+    const sh=$('#cuShare');if(sh)sh.onclick=async()=>{
+      try{if(navigator.share){await navigator.share({url:LINK_APP});return}}catch(e){}
+      try{await navigator.clipboard.writeText(LINK_APP);toast('Link copiado')}catch(e){}
+    };
+    document.addEventListener('click',async e=>{
+      const b=e.target.closest('[data-del]');if(!b)return;
+      const t=loadJSON('pc_tenant',null);
+      await db.collection('negocios/'+t.id+'/usuarios').doc(b.dataset.del).delete();
+      localDel(b.dataset.usu);
+      toast('Usuario eliminado de la nube y del equipo');lista();if(typeof render==='function')render();
+    });
+  });
+})();
