@@ -1,16 +1,18 @@
-/* ══ nube.js · puertas, registro auto, login y sesión limpia ══ */
+/* ══ nube.js · puertas, sesión exclusiva y candados ══ */
 (function(){
   const OV=document.createElement('div');OV.id='loginOv';OV.style.display='none';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(OV));
   function mostrar(h){OV.innerHTML='<div class="loginCard">'+h+'</div>';OV.style.display='flex'}
   function ocultar(){OV.style.display='none'}
   function tenant(){return loadJSON('pc_tenant',null)}
+  function devid(){let d=loadJSON('pc_devid',null);if(!d){d='D'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);saveJSON('pc_devid',d)}return d}
   const correo=(usu,neg)=>usu.toLowerCase()+'@'+neg+'.avicola.app';
   const WA='584242300131';
   const waLink=t=>'https://wa.me/'+WA+'?text='+encodeURIComponent(t);
   function FBD(){if(!window.db&&typeof firebase!=='undefined'&&firebase.firestore)window.db=firebase.firestore();return window.db}
   function FBA(){if(!window.auth&&typeof firebase!=='undefined'&&firebase.auth)window.auth=firebase.auth();return window.auth}
   function genCode(){return 'AVI-'+Math.floor(1000+Math.random()*9000)}
+  let KICK=null;
   async function arrancar(){
     try{await fbListo}catch(e){}
     if(!window.db){mostrar('<h2>Conectando con la nube…</h2><p class="muted">Si esto no avanza, revisa tu internet.</p><button class="btn btn-p btn-w" onclick="location.reload()">Reintentar</button>');return}
@@ -19,11 +21,20 @@
     if(loadJSON('pc_justout',0)){localStorage.removeItem('pc_justout');pantallaInicio(t);return}
     mostrar('<h2>Verificando sesión…</h2><p class="muted">Un momento.</p>');
     FBA().onAuthStateChanged(async u=>{
-      if(u){ocultar();window.NUBE_USER=u;asegurarSalirNube(u);setTimeout(()=>{if(window.lanzarTutorial)lanzarTutorial()},900);return}
+      if(!u){try{const s=await FBD().collection('negocios/'+t.id+'/usuarios').limit(1).get();if(s.empty)pantallaPrimerAdmin(t);else pantallaLogin(t)}catch(e){pantallaLogin(t)}return}
       try{
-        const s=await FBD().collection('negocios/'+t.id+'/usuarios').limit(1).get();
-        if(s.empty)pantallaPrimerAdmin(t);else pantallaLogin(t);
-      }catch(e){pantallaLogin(t)}
+        const ref=FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid);
+        const d=await ref.get();
+        if(!d.exists){await FBA().signOut();mostrar('<h2>Cuenta eliminada</h2><p class="muted">Tu administrador eliminó esta cuenta. Pide una nueva.</p>');return}
+        const p=d.data(),s=p.sesion;
+        if(s&&s.dev&&s.dev!==devid()&&(Date.now()-s.ts)<12*3600*1000){await FBA().signOut();pantallaLogin(t,'Esta cuenta ya tiene sesión abierta en otro dispositivo.');return}
+        await ref.update({sesion:{dev:devid(),ts:Date.now()}});
+        if(KICK)KICK();
+        KICK=ref.onSnapshot(snap=>{if(!snap.exists||snap.data().activo===false){KICK=null;salir()}});
+        window.NUBE_USER=u;window.NUBE_PERFIL=p;
+        ocultar();asegurarSalirNube(u);
+        setTimeout(()=>{if(window.lanzarTutorial)lanzarTutorial()},900);
+      }catch(e){ocultar();pantallaLogin(t,'Error de verificación: '+e.message)}
     });
   }
   function pantallaInicio(t){
@@ -74,15 +85,13 @@
       }catch(e){toast('Error: '+e.message)}
     };
   }
-  function pantallaLogin(t){
-    mostrar('<h2>'+esc(t.nombre||'Sistema Avícola')+'</h2><p class="muted">Código '+esc(t.code)+' · entra con tu usuario</p><div class="field"><label>Usuario</label><input id="lgU2"></div><div class="field"><label>Clave</label><input id="lgP2" type="password"></div><button class="btn btn-p btn-w" id="lgB2">Entrar</button><p class="muted" style="margin-top:8px"><a href="#" id="lgOtro">Cambiar de negocio</a></p>');
+  function pantallaLogin(t,msg){
+    mostrar('<h2>'+esc(t.nombre||'Sistema Avícola')+'</h2><p class="muted">Código '+esc(t.code)+' · entra con tu usuario</p><div class="field"><label>Usuario</label><input id="lgU2"></div><div class="field"><label>Clave</label><input id="lgP2" type="password"></div><button class="btn btn-p btn-w" id="lgB2">Entrar</button><p id="lgErr" style="color:var(--red);margin-top:8px">'+(msg?esc(msg):'')+'</p><p class="muted" style="margin-top:8px"><a href="#" id="lgOtro">Cambiar de negocio</a></p>');
     $('#lgOtro').onclick=e=>{e.preventDefault();localStorage.removeItem('pc_tenant');location.reload()};
     $('#lgB2').onclick=async()=>{
-    $('#lgB2').textContent='Entrando…';
-            $('#lgB2').textContent='Entrando…';
+      $('#lgB2').textContent='Entrando…';
       try{await FBA().signInWithEmailAndPassword(correo($('#lgU2').value.trim(),t.id),$('#lgP2').value);toast('Bienvenido')}
-      catch(err){$('#lgB2').textContent='Entrar';const er=$('#lgErr');if(er)er.textContent='Usuario o clave incorrectos';else toast('Usuario o clave incorrectos')}
-      catch(err){toast('Usuario o clave incorrectos')}
+      catch(err){$('#lgB2').textContent='Entrar';const er=$('#lgErr');if(er)er.textContent='Usuario o clave incorrectos'}
     };
   }
   async function asegurarSalirNube(u){
@@ -92,10 +101,16 @@
     a.onclick=e=>{e.preventDefault();salir()};
     side.appendChild(a);
     try{
-      const t=tenant(),d=await FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid).get();
-      if(d.exists){const p=d.data();const foot=side.querySelector('.side-foot');if(foot)foot.textContent='Conectado: '+p.nom+' ('+(p.rol==='fundador'?'Fundador':p.rol==='admin'?'Admin':(p.ext?'Empleado +':'Empleado'))+')'}
+      const p=window.NUBE_PERFIL||{};
+      const foot=side.querySelector('.side-foot');
+      if(foot)foot.textContent='Conectado: '+(p.nom||'')+' ('+(p.rol==='fundador'?'Fundador':p.rol==='admin'?'Admin':(p.ext?'Empleado +':'Empleado'))+')';
     }catch(e){}
   }
-  function salir(){FBA().signOut();localStorage.removeItem('pc_session');saveJSON('pc_justout',1);location.reload()}
+  function salir(){
+    const t=tenant(),u=FBA()?FBA().currentUser:null;
+    if(t&&u){try{FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid).update({sesion:null})}catch(e){}}
+    if(KICK){KICK();KICK=null}
+    FBA().signOut();localStorage.removeItem('pc_session');saveJSON('pc_justout',1);location.reload();
+  }
   document.addEventListener('DOMContentLoaded',arrancar);
 })();
