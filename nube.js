@@ -12,6 +12,7 @@
   function FBD(){if(!window.db&&typeof firebase!=='undefined'&&firebase.firestore)window.db=firebase.firestore();return window.db}
   function FBA(){if(!window.auth&&typeof firebase!=='undefined'&&firebase.auth)window.auth=firebase.auth();return window.auth}
   function genCode(){return 'AVI-'+Math.floor(1000+Math.random()*9000)}
+  function conTope(prom,ms){return Promise.race([prom,new Promise((_,rej)=>setTimeout(()=>rej(new Error('La nube tarda demasiado: revisa tu internet')),ms))])}
   let KICK=null;
   async function arrancar(){
     try{await fbListo}catch(e){}
@@ -24,7 +25,7 @@
       if(!u){try{const s=await FBD().collection('negocios/'+t.id+'/usuarios').limit(1).get();if(s.empty)pantallaPrimerAdmin(t);else pantallaLogin(t)}catch(e){pantallaLogin(t)}return}
       try{
         const ref=FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid);
-        const d=await ref.get();
+        const d=await conTope(ref.get(),10000);
         if(!d.exists){await FBA().signOut();mostrar('<h2>Cuenta eliminada</h2><p class="muted">Tu administrador eliminó esta cuenta. Pide una nueva.</p>');return}
                 const p=d.data(),s=p.sesion;
                 if(s&&s.dev&&s.dev!==devid()&&(Date.now()-s.ts)<12*3600*1000){
@@ -39,7 +40,7 @@
           return;
         }
         continuar(u,ref,p);
-      }catch(e){ocultar();pantallaLogin(t,'Error de verificación: '+e.message)}
+}catch(e){mostrar('<h2>La nube no responde</h2><p class="muted">'+esc(e.message)+'</p><div class="grid2"><button class="btn btn-g" onclick="location.reload()">Reintentar</button><button class="btn btn-p" id="vOut">Cancelar</button></div>');$('#vOut').onclick=async()=>{await FBA().signOut();pantallaLogin(t)}}
     });
   }
     function continuar(u,ref,p){
@@ -99,16 +100,21 @@
   }
   function pantallaLogin(t,msg){
     mostrar('<h2>'+esc(t.nombre||'Sistema Avícola')+'</h2><p class="muted">Código '+esc(t.code)+' · entra con tu usuario</p><div class="field"><label>Usuario</label><input id="lgU2"></div><div class="field"><label>Clave</label><input id="lgP2" type="password"></div><button class="btn btn-p btn-w" id="lgB2">Entrar</button><p id="lgErr" style="color:var(--red);margin-top:8px">'+(msg?esc(msg):'')+'</p><p class="muted" style="margin-top:8px"><a href="#" id="lgOlvi">Olvidé mi clave</a> · <a href="#" id="lgOtro">Cambiar de negocio</a></p>');
-        $('#lgOlvi').onclick=async e=>{
+            $('#lgOlvi').onclick=e=>{
       e.preventDefault();
-      const usu=prompt('Escribe tu usuario:');if(!usu)return;
-      try{
-        const q=await FBD().collection('negocios/'+t.id+'/usuarios').where('usu','==',usu.trim().toLowerCase()).limit(1).get();
-        if(q.empty){toast('Usuario no encontrado');return}
-        if(!q.docs[0].data().mail){toast('Sin correo registrado: pide ayuda a tu administrador');return}
-        await FBA().sendPasswordResetEmail(correo(usu.trim(),t.id));
-        toast('Te enviamos un correo para restablecer la clave');
-      }catch(err){toast('Error: '+err.message)}
+      mostrar('<h2>Recuperar mi clave</h2><p class="muted">Escribe tu usuario y te enviaremos un correo con el enlace para crear una clave nueva. Si tu cuenta no tiene correo registrado, pide ayuda a tu administrador.</p><div class="field"><label>Usuario</label><input id="olU"></div><button class="btn btn-p btn-w" id="olB">Enviar correo de recuperación</button><p class="muted" style="margin-top:8px"><a href="#" id="olV">Volver</a></p>');
+      $('#olV').onclick=ev=>{ev.preventDefault();pantallaLogin(t)};
+      $('#olB').onclick=async()=>{
+        const usu=$('#olU').value.trim().toLowerCase();if(!usu){toast('Escribe tu usuario');return}
+        try{
+          const q=await conTope(FBD().collection('negocios/'+t.id+'/usuarios').where('usu','==',usu).limit(1).get(),10000);
+          if(q.empty){toast('Usuario no encontrado');return}
+          if(!q.docs[0].data().mail){toast('Esta cuenta no tiene correo: pide ayuda a tu administrador');return}
+          await FBA().sendPasswordResetEmail(correo(usu,t.id));
+          mostrar('<h2>Correo enviado</h2><p class="muted">Revisa tu bandeja (y la carpeta de spam). Abre el enlace, crea tu clave nueva y vuelve aquí para iniciar sesión.</p><button class="btn btn-p btn-w" id="olOk">Entendido</button>');
+          $('#olOk').onclick=()=>pantallaLogin(t);
+        }catch(err){toast('Error: '+err.message)}
+      };
     };
     $('#lgB2').onclick=async()=>{
             $('#lgB2').textContent='Entrando…';
