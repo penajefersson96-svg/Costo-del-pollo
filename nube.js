@@ -14,9 +14,14 @@
   }
   function pantallaCodigo(){
     mostrar('<h2>Código de tu negocio</h2><p class="muted">Pídelo a tu empleador. Si eres el fundador, créalo abajo.</p><div class="field"><label>Código</label><input id="ncCod" placeholder="AVI-0000" style="text-transform:uppercase"></div><button class="btn btn-p btn-w" id="ncBtn">Vincular dispositivo</button><div id="ncFund" style="margin-top:10px"></div>');
-    fb.db.collection('negocios').limit(1).get().then(s=>{
-      if(s.empty){$('#ncFund').innerHTML='<button class="btn btn-g btn-w" id="ncFB">Soy fundador: crear mi negocio</button>';$('#ncFB').onclick=formularioFundador}
-    });
+        $('#ncFund').innerHTML='<button class="btn btn-g btn-w" id="ncFB">Soy fundador: crear mi negocio</button>';
+    $('#ncFB').onclick=async()=>{
+      try{
+        const s=await fb.db.collection('negocios').limit(1).get();
+        if(!s.empty){toast('Ya hay negocios creados: usa tu código');return}
+        formularioFundador();
+      }catch(e){toast('Error de red: '+e.message)}
+    };
     $('#ncBtn').onclick=async()=>{
       const cod=$('#ncCod').value.trim().toUpperCase();if(!cod){toast('Escribe el código');return}
       const q=await fb.db.collection('negocios').where('code','==',cod).limit(1).get();
