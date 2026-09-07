@@ -1,13 +1,29 @@
-/* ══ mascaras.js v2 · sin parpadeo + reporte de equipo ══ */
+/* ══ mascaras.js v3 · perfil al instante ══ */
 (function(){
-  const S=()=>loadJSON('pc_session',null)||window.NUBE_PERFIL||null;
+  let LISTO=false;
+  const S=()=>loadJSON('pc_session',null);
+  function rolDe(p){return p?(p.rol==='fundador'?'admin':p.rol):null}
   document.addEventListener('DOMContentLoaded',()=>{
-    const p=S();if(p&&p.rol==='emp')document.documentElement.classList.add('premask');
-    navegar();
-    [400,1200,2500,4000].forEach(ms=>setTimeout(aplicar,ms));
+    const s=S();
+    if(s&&rolDe(s)==='emp'){document.documentElement.classList.add('premask');navegar(s)}
+    const poll=setInterval(()=>{
+      const p=window.NUBE_PERFIL||S();
+      if(!p)return;
+      clearInterval(poll);
+      if(!LISTO){LISTO=true;arranque(p)}
+    },100);
+    setTimeout(()=>{clearInterval(poll);if(!LISTO){const s2=S();if(s2){LISTO=true;arranque(s2)}}},4000);
   });
-  function navegar(){
-    const p=S();if(!p||p.rol!=='emp')return;
+  function arranque(p){
+    saveJSON('pc_session',{nom:p.nom,usu:p.usu,rol:rolDe(p),ext:!!p.ext});
+    document.body.classList.remove('rol-fund','rol-admin','rol-enc','rol-emp');
+    document.body.classList.add(rolDe(p)==='admin'?(p.rol==='fundador'?'rol-fund':'rol-admin'):(p.ext?'rol-enc':'rol-emp'));
+    try{if(typeof recortarMenu==='function')recortarMenu();if(typeof paginaPermitida==='function')paginaPermitida()}catch(e){}
+    navegar(p);
+    [0,300,1200,2500].forEach(ms=>setTimeout(aplicar,ms));
+  }
+  function navegar(p){
+    if(!p||rolDe(p)!=='emp')return;
     const enc=!!p.ext;
     const pag=(location.pathname.split('/').pop()||'index.html');
     if(pag==='index.html'||pag===''||pag==='usuarios2.html'||(!enc&&pag==='calculo2.html'))location.replace('lotes2.html');
@@ -26,7 +42,7 @@
   }
   function aplicar(){
     const p=window.NUBE_PERFIL||S();if(!p)return;
-    if(p.rol!=='emp'){document.documentElement.classList.remove('premask');return}
+    if(rolDe(p)!=='emp'){document.documentElement.classList.remove('premask');return}
     const enc=!!p.ext;
     ocultarDinero();
     if(enc){
