@@ -49,7 +49,20 @@
         try{
     const ref=FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid);
       const d=await conTope(ref.get(),10000);
-      if(!d.exists){await FBA().signOut();mostrar('<h2>Cuenta eliminada</h2><p class="muted">Tu administrador eliminó esta cuenta. Pide una nueva.</p>');return}
+      if(!d.exists){
+        const vac=await conTope(FBD().collection('negocios/'+t.id+'/usuarios').limit(1).get(),10000);
+        if(vac.empty){
+          mostrar('<h2>Ficha desaparecida</h2><p class="muted">Tu acceso existe pero tu ficha no. Si eres el dueño de este negocio, restáurala.</p><div class="grid2"><button class="btn btn-g" id="rsNo">Cancelar</button><button class="btn btn-p" id="rsSi">Restaurar mi ficha</button></div>');
+          $('#rsNo').onclick=async()=>{await FBA().signOut();pantallaLogin(t)};
+          $('#rsSi').onclick=async()=>{
+            await FBD().collection('negocios').doc(t.id).set({code:'AVI-0001',nombre:'Mi Granja',plan:'fundador',activo:true,fundador:true,creado:Date.now(),hasta:'2099-12-31'},{merge:true});
+            await ref.set({uid:u.uid,nom:'Fundador',usu:(u.email||'fundador').split('@')[0],mail:'',rol:'fundador',ext:true,creado:Date.now()});
+            continuar(u,ref,{nom:'Fundador',rol:'fundador',ext:true});
+          };
+          return;
+        }
+        await FBA().signOut();mostrar('<h2>Cuenta eliminada</h2><p class="muted">Tu administrador eliminó esta cuenta. Pide una nueva.</p>');return;
+      }
       const p=d.data(),s=p.sesion;
             if(p.rol==='emp'||p.rol==='ext'){
         const nd=await conTope(FBD().collection('negocios').doc(t.id).get(),10000);
@@ -89,11 +102,36 @@
     window._verif=0;
     ocultar();asegurarSalirNube(u);
     setTimeout(()=>{if(window.lanzarTutorial)lanzarTutorial()},900);
+        const act=()=>saveJSON('pc_act_'+u.uid,Date.now());
+    ['click','keydown','touchstart','scroll'].forEach(ev=>document.addEventListener(ev,act,{passive:true}));
+    act();
+    setInterval(()=>{const p=window.NUBE_PERFIL;if(!p||(p.rol!=='admin'&&p.rol!=='fundador'))return;const a=loadJSON('pc_act_'+u.uid,0);if(a&&(Date.now()-a)>30*60*1000)patear('<h2>Sesión expirada</h2><p class="muted">Por inactividad prolongada. Vuelve a entrar.</p>')},60000);
   }
   function pantallaInicio(t){
     mostrar('<h2>Sistema Avícola</h2><p class="muted">Bienvenido. Entra con el código de tu negocio o regístrate.</p><button class="btn btn-p btn-w" id="ncLogin">Iniciar sesión</button><button class="btn btn-g btn-w" style="margin-top:8px" id="ncReg">Registrarme</button><a class="btn btn-g btn-w" style="margin-top:8px;display:block" href="'+waLink('Hola, necesito ayuda con la app Sistema Avícola: no puedo entrar o no tengo mi código de negocio.')+'" target="_blank">¿Dudas? Escríbeme por WhatsApp</a>');
     $('#ncLogin').onclick=t?()=>pantallaLogin(t):pantallaCodigo;
     $('#ncReg').onclick=pantallaRegistro;
+        conTope(FBD().collection('negocios').limit(1).get(),10000).then(s=>{
+      if(s.empty&&!OV.querySelector('#ncFB')){
+        const div=document.createElement('div');div.innerHTML='<button class="btn btn-g btn-w" style="margin-top:8px" id="ncFB">Soy fundador: crear mi negocio</button>';
+        OV.querySelector('.loginCard').appendChild(div);
+        $('#ncFB').onclick=formularioFundador;
+      }
+    }).catch(()=>{});
+  }
+    function formularioFundador(){
+    mostrar('<h2>Crear mi negocio (fundador)</h2><div class="field"><label>Nombre del negocio</label><input id="fNom" value="Mi Granja"></div><div class="field"><label>Correo</label><input id="fMail" type="email"></div><div class="field"><label>Usuario</label><input id="fUsu" placeholder="fundador"></div><div class="field"><label>Clave (mín. 6)</label><input id="fPin" type="password"></div><button class="btn btn-p btn-w" id="fBtn">Crear y entrar</button>');
+    $('#fBtn').onclick=async()=>{
+      const nom=$('#fNom').value.trim(),mail=$('#fMail').value.trim(),usu=$('#fUsu').value.trim(),pin=$('#fPin').value;
+      if(!nom||!usu||pin.length<6){toast('Nombre, usuario y clave de 6+');return}
+      try{
+        const ref=await FBD().collection('negocios').add({code:'AVI-0001',nombre:nom,plan:'fundador',activo:true,fundador:true,creado:Date.now(),hasta:'2099-12-31'});
+        saveJSON('pc_tenant',{id:ref.id,code:'AVI-0001',nombre:nom});
+        const cred=await FBA().createUserWithEmailAndPassword(correo(usu,ref.id),pin);
+        await FBD().collection('negocios/'+ref.id+'/usuarios').doc(cred.user.uid).set({uid:cred.user.uid,nom,usu,mail,rol:'fundador',ext:true,creado:Date.now()});
+        location.reload();
+      }catch(e){toast('Error: '+e.message)}
+    };
   }
   function pantallaCodigo(){
     mostrar('<h2>Código de tu negocio</h2><div class="field"><label>Código</label><input id="ncCod" placeholder="AVI-0000" style="text-transform:uppercase"></div><button class="btn btn-p btn-w" id="ncBtn">Vincular dispositivo</button><p class="muted" style="margin-top:8px"><a href="#" id="ncVolver">Volver</a></p>');
@@ -168,10 +206,27 @@
         const uu=FBA().currentUser;if(uu){window._verif=1;verificar(uu,t,1)}
       }catch(err){
         $('#lgB2').textContent='Entrar';
+        if(err.code==='auth/user-not-found'){
+          try{
+            const vac=await conTope(FBD().collection('negocios/'+t.id+'/usuarios').limit(1).get(),10000);
+            if(vac.empty){
+              mostrar('<h2>Recrear mi acceso</h2><p class="muted">Tu ficha no existe en la nube. Crea de nuevo tu acceso de dueño para este negocio.</p><div class="field"><label>Usuario</label><input id="rcU"></div><div class="field"><label>Clave nueva (mín. 6)</label><input id="rcP" type="password"></div><button class="btn btn-p btn-w" id="rcB">Recrear y entrar</button>');
+              $('#rcB').onclick=async()=>{
+                const usu=$('#rcU').value.trim(),pin=$('#rcP').value;
+                if(!usu||pin.length<6){toast('Usuario y clave de 6+');return}
+                const cred=await FBA().createUserWithEmailAndPassword(correo(usu,t.id),pin);
+                const nd=await FBD().collection('negocios').doc(t.id).get();
+                const rol=(nd.exists&&nd.data().fundador)?'fundador':'admin';
+                await FBD().collection('negocios/'+t.id+'/usuarios').doc(cred.user.uid).set({uid:cred.user.uid,nom:rol==='fundador'?'Fundador':'Admin',usu,mail:'',rol,ext:true,creado:Date.now()});
+                location.reload();
+              };
+              return;
+            }
+          }catch(e2){}
+        }
         const er=$('#lgErr');
         if(er)er.textContent=err.message==='timeout'?'La red no responde: revisa tu internet y reintenta':'Usuario o clave incorrectos';
       }
-    };
   }
   async function asegurarSalirNube(u){
     const side=$('#side');if(!side||$('#sideOut'))return;
