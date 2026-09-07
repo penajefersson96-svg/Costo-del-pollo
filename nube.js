@@ -17,7 +17,7 @@
     const t=tenant();
     if(!t){pantallaInicio();return}
     FBA().onAuthStateChanged(async u=>{
-      if(u){ocultar();window.NUBE_USER=u;return}
+      if(u){ocultar();window.NUBE_USER=u;asegurarSalirNube(u);return}
       try{
         const s=await FBD().collection('negocios/'+t.id+'/usuarios').limit(1).get();
         if(s.empty)pantallaPrimerAdmin(t);else pantallaLogin(t);
@@ -25,7 +25,7 @@
     });
   }
   function pantallaInicio(){
-    mostrar('<h2>Sistema Avícola</h2><p class="muted">Bienvenido. Entra con el código de tu negocio o regístrate.</p><button class="btn btn-p btn-w" id="ncLogin">Iniciar sesión</button><button class="btn btn-g btn-w" style="margin-top:8px" id="ncReg">Registrarme</button><a class="btn btn-g btn-w" style="margin-top:8px;display:block" href="'+waLink('Hola, tengo una duda sobre Sistema Avícola (entrada o código).')+'" target="_blank">¿Dudas? Escríbeme por WhatsApp</a>');
+    mostrar('<h2>Sistema Avícola</h2><p class="muted">Bienvenido. Entra con el código de tu negocio o regístrate.</p><button class="btn btn-p btn-w" id="ncLogin">Iniciar sesión</button><button class="btn btn-g btn-w" style="margin-top:8px" id="ncReg">Registrarme</button><a class="btn btn-g btn-w" style="margin-top:8px;display:block" href="'+waLink('Hola, necesito ayuda con la app Sistema Avícola: no puedo entrar o no tengo mi código de negocio.')+'" target="_blank">¿Dudas? Escríbeme por WhatsApp</a>');
     $('#ncLogin').onclick=pantallaCodigo;
     $('#ncReg').onclick=pantallaRegistro;
   }
@@ -55,7 +55,8 @@
         for(let i=0;i<5;i++){const q=await FBD().collection('negocios').where('code','==',cod).limit(1).get();if(q.empty)break;cod=genCode()}
         const hasta=new Date(Date.now()+30*86400000).toISOString().slice(0,10);
         const ref=await FBD().collection('negocios').add({code:cod,nombre:neg,plan:'prueba',activo:true,fundador:false,creado:Date.now(),hasta,contacto:{nom,mail,wa}});
-        mostrar('<h2>¡Listo, '+esc(nom)+'!</h2><p class="muted">Tu negocio <b>'+esc(neg)+'</b> quedó creado con <b>30 días de prueba</b>. Tu código es:</p><h1 style="letter-spacing:.05em">'+cod+'</h1><button class="btn btn-p btn-w" id="rOk">Vincular este dispositivo</button><a class="btn btn-g btn-w" style="margin-top:8px;display:block" href="'+waLink('Hola, acabo de registrarme en Sistema Avícola. Mi negocio: '+neg+'. Mi código: '+cod)+'" target="_blank">Guardar copia por WhatsApp</a>');
+        mostrar('<h2>¡Listo, '+esc(nom)+'!</h2><p class="muted">Tu negocio <b>'+esc(neg)+'</b> quedó creado con <b>30 días de prueba</b>. Tu código es:</p><h1 style="letter-spacing:.05em">'+cod+'</h1><button class="btn btn-p btn-w" id="rOk">Vincular este dispositivo</button><a class="btn btn-g btn-w" style="margin-top:8px;display:block" href="'+waLink('Hola, me registré en Sistema Avícola. Mi negocio: '+neg+'. Mi código: '+cod+'. Guardo este mensaje como copia.
+ '+neg+'. Mi código: '+cod)+'" target="_blank">Guardar copia por WhatsApp</a>');
         $('#rOk').onclick=()=>{saveJSON('pc_tenant',{id:ref.id,code:cod,nombre:neg});location.reload()};
       }catch(e){toast('Error: '+e.message)}
     };

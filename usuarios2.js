@@ -11,7 +11,7 @@ $('#btnUser').onclick=()=>{
   const nom=$('#uNom').value.trim(),ced=$('#uCed').value.trim(),rol=$('#uRol').value,ext=$('#uExt').checked,usu=$('#uUsu').value.trim(),pin=$('#uPin').value.trim();
   if(!nom){toast('Escribe el nombre completo');return}
   if(!usu){toast('Escribe el usuario');return}
-  if(pin.length<4){toast('Clave de al menos 4 dígitos');return}
+  if(pin.length<6){toast('Clave de al menos 6 dígitos');return}
   const u=users();
   if(u.some(x=>(x.usu||'').toLowerCase()===usu.toLowerCase())){toast('Ese usuario ya existe');return}
   u.push({id:Date.now(),nom,ced,rol,ext,usu,pin});
