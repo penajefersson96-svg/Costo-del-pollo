@@ -38,10 +38,10 @@
     };
   }
   function formularioFundador(){
-    mostrar('<h2>Crear mi negocio (fundador)</h2><div class="field"><label>Nombre del negocio</label><input id="fNom" value="Mi Granja"></div><div class="field"><label>Usuario</label><input id="fUsu" placeholder="fundador"></div><div class="field"><label>Clave (mín. 4)</label><input id="fPin" type="password"></div><button class="btn btn-p btn-w" id="fBtn">Crear y entrar</button>');
+    mostrar('<h2>Crear mi negocio (fundador)</h2><div class="field"><label>Nombre del negocio</label><input id="fNom" value="Mi Granja"></div><div class="field"><label>Usuario</label><input id="fUsu" placeholder="fundador"></div><div class="field"><label>Clave (mín. 6)</label><input id="fPin" type="password"></div><button class="btn btn-p btn-w" id="fBtn">Crear y entrar</button>');
     $('#fBtn').onclick=async()=>{
       const nom=$('#fNom').value.trim(),usu=$('#fUsu').value.trim(),pin=$('#fPin').value;
-      if(!nom||!usu||pin.length<4){toast('Completa nombre, usuario y clave de 4+');return}
+      if(!nom||!usu||pin.length<6){toast('Completa nombre, usuario y clave de ');return}
       try{
         const ref=await FBD().collection('negocios').add({code:'AVI-0001',nombre:nom,plan:'pago',activo:true,fundador:true,creado:Date.now(),hasta:'2099-12-31'});
         saveJSON('pc_tenant',{id:ref.id,code:'AVI-0001',nombre:nom});
