@@ -1,4 +1,4 @@
-/* ══ nube.js · bóveda + login en la nube ══ */
+/* ══ nube.js · dos puertas + bóveda + login en la nube ══ */
 (function(){
   const OV=document.createElement('div');OV.id='loginOv';OV.style.display='none';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(OV));
@@ -9,46 +9,40 @@
   function FBD(){if(!window.db&&typeof firebase!=='undefined'&&firebase.firestore)window.db=firebase.firestore();return window.db}
   function FBA(){if(!window.auth&&typeof firebase!=='undefined'&&firebase.auth)window.auth=firebase.auth();return window.auth}
   async function arrancar(){
-        try{await fbListo}catch(e){}
+    try{await fbListo}catch(e){}
     if(!window.db){mostrar('<h2>Conectando con la nube…</h2><p class="muted">Si esto no avanza, revisa tu internet.</p><button class="btn btn-p btn-w" onclick="location.reload()">Reintentar</button>');return}
     const t=tenant();
     if(!t){pantallaCodigo();return}
     FBA().onAuthStateChanged(u=>{if(u){ocultar();window.NUBE_USER=u}else pantallaLogin(t)});
   }
   function pantallaCodigo(){
-    mostrar('<h2>Código de tu negocio</h2><p class="muted">Pídelo a tu empleador. Si eres el fundador, créalo abajo.</p><div class="field"><label>Código</label><input id="ncCod" placeholder="AVI-0000" style="text-transform:uppercase"></div><button class="btn btn-p btn-w" id="ncBtn">Vincular dispositivo</button><div id="ncFund" style="margin-top:10px"></div>');
-    $('#ncFund').innerHTML='<button class="btn btn-g btn-w" id="ncFB">Soy fundador: crear mi negocio</button>';
-    $('#ncFB').onclick=async()=>{
-      try{
-        const s=await FBD().collection('negocios').limit(1).get();
-        if(!s.empty){toast('Ya hay negocios creados: usa tu código');return}
-        formularioFundador();
-      }catch(e){toast('Error de red: '+e.message)}
+    mostrar('<h2>Sistema Avícola</h2><p class="muted">Bienvenido. Entra con el código de tu negocio o solicita el tuyo.</p><button class="btn btn-p btn-w" id="ncLogin">Iniciar sesión</button><button class="btn btn-g btn-w" style="margin-top:8px" id="ncReg">Quiero alquilar / Registrarme</button><a class="btn btn-g btn-w" style="margin-top:8px;display:block" href="https://wa.me/584242300131" target="_blank">¿Dudas? Escríbeme por WhatsApp</a>');
+    $('#ncLogin').onclick=()=>{
+      mostrar('<h2>Código de tu negocio</h2><div class="field"><label>Código</label><input id="ncCod" placeholder="AVI-0000" style="text-transform:uppercase"></div><button class="btn btn-p btn-w" id="ncBtn">Vincular dispositivo</button><p class="muted" style="margin-top:8px"><a href="#" id="ncVolver">Volver</a></p>');
+      $('#ncVolver').onclick=e=>{e.preventDefault();pantallaCodigo()};
+      $('#ncBtn').onclick=async()=>{
+        const cod=$('#ncCod').value.trim().toUpperCase();if(!cod){toast('Escribe el código');return}
+        try{
+          const q=await FBD().collection('negocios').where('code','==',cod).limit(1).get();
+          if(q.empty){toast('Código no válido: pídelo a tu empleador');return}
+          const d=q.docs[0];
+          if(d.data().activo===false){toast('Negocio suspendido: contacta al proveedor');return}
+          saveJSON('pc_tenant',{id:d.id,code:cod,nombre:d.data().nombre});
+          location.reload();
+        }catch(e){toast('Error de red: '+e.message)}
+      };
     };
-    $('#ncBtn').onclick=async()=>{
-      const cod=$('#ncCod').value.trim().toUpperCase();if(!cod){toast('Escribe el código');return}
-      try{
-        const q=await FBD().collection('negocios').where('code','==',cod).limit(1).get();
-        if(q.empty){toast('Código no válido: pídelo a tu empleador');return}
-        const d=q.docs[0];
-        if(d.data().activo===false){toast('Negocio suspendido: contacta al proveedor');return}
-        saveJSON('pc_tenant',{id:d.id,code:cod,nombre:d.data().nombre});
-        location.reload();
-      }catch(e){toast('Error de red: '+e.message)}
-    };
-  }
-  function formularioFundador(){
-    mostrar('<h2>Crear mi negocio (fundador)</h2><div class="field"><label>Nombre del negocio</label><input id="fNom" value="Mi Granja"></div><div class="field"><label>Usuario</label><input id="fUsu" placeholder="fundador"></div><div class="field"><label>Clave (mín. 6)</label><input id="fPin" type="password"></div><button class="btn btn-p btn-w" id="fBtn">Crear y entrar</button>');
-    $('#fBtn').onclick=async()=>{
-      const nom=$('#fNom').value.trim(),usu=$('#fUsu').value.trim(),pin=$('#fPin').value;
-      if(!nom||!usu||pin.length<6){toast('Completa nombre, usuario y clave de ');return}
-      try{
-        const ref=await FBD().collection('negocios').add({code:'AVI-0001',nombre:nom,plan:'pago',activo:true,fundador:true,creado:Date.now(),hasta:'2099-12-31'});
-        saveJSON('pc_tenant',{id:ref.id,code:'AVI-0001',nombre:nom});
-        const cred=await FBA().createUserWithEmailAndPassword(correo(usu,ref.id),pin);
-        await FBD().collection('negocios/'+ref.id+'/usuarios').doc(cred.user.uid).set({uid:cred.user.uid,nom:nom+' (fundador)',usu,rol:'fundador',ext:true,creado:Date.now()});
-        location.reload();
-      }catch(e){toast('Error: '+e.message)}
+    $('#ncReg').onclick=()=>{
+      mostrar('<h2>Solicitar mi código</h2><div class="field"><label>Tu nombre</label><input id="rNom"></div><div class="field"><label>Nombre del negocio</label><input id="rNeg"></div><div class="field"><label>Correo</label><input id="rMail" type="email"></div><div class="field"><label>WhatsApp</label><input id="rWa" inputmode="numeric" placeholder="584XXXXXXXXX"></div><button class="btn btn-p btn-w" id="rBtn">Enviar solicitud</button><p class="muted" style="margin-top:8px"><a href="#" id="rVolver">Volver</a></p>');
+      $('#rVolver').onclick=e=>{e.preventDefault();pantallaCodigo()};
+      $('#rBtn').onclick=async()=>{
+        const nom=$('#rNom').value.trim(),neg=$('#rNeg').value.trim(),mail=$('#rMail').value.trim(),wa=$('#rWa').value.trim();
+        if(!nom||!neg||!wa){toast('Completa nombre, negocio y WhatsApp');return}
+        try{
+          await FBD().collection('solicitudes').add({nom,neg,mail,wa,estado:'pendiente',creado:Date.now()});
+          mostrar('<h2>¡Solicitud enviada!</h2><p class="muted">Te contactaremos por WhatsApp con tu código para empezar tu mes de prueba.</p><button class="btn btn-p btn-w" onclick="location.reload()">Entendido</button>');
+        }catch(e){toast('Error: '+e.message)}
+      };
     };
   }
   function pantallaLogin(t){
