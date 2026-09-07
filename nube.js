@@ -1,4 +1,4 @@
-/* ══ nube.js · puertas, registro auto y login en la nube ══ */
+/* ══ nube.js · puertas, registro auto, login y sesión limpia ══ */
 (function(){
   const OV=document.createElement('div');OV.id='loginOv';OV.style.display='none';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(OV));
@@ -16,17 +16,18 @@
     if(!window.db){mostrar('<h2>Conectando con la nube…</h2><p class="muted">Si esto no avanza, revisa tu internet.</p><button class="btn btn-p btn-w" onclick="location.reload()">Reintentar</button>');return}
     const t=tenant();
     if(!t){pantallaInicio();return}
+    if(loadJSON('pc_justout',0)){localStorage.removeItem('pc_justout');pantallaInicio(t);return}
     FBA().onAuthStateChanged(async u=>{
-      if(u){ocultar();window.NUBE_USER=u;asegurarSalirNube(u);return}
+      if(u){ocultar();window.NUBE_USER=u;asegurarSalirNube(u);setTimeout(()=>{if(window.lanzarTutorial)lanzarTutorial()},900);return}
       try{
         const s=await FBD().collection('negocios/'+t.id+'/usuarios').limit(1).get();
         if(s.empty)pantallaPrimerAdmin(t);else pantallaLogin(t);
       }catch(e){pantallaLogin(t)}
     });
   }
-  function pantallaInicio(){
+  function pantallaInicio(t){
     mostrar('<h2>Sistema Avícola</h2><p class="muted">Bienvenido. Entra con el código de tu negocio o regístrate.</p><button class="btn btn-p btn-w" id="ncLogin">Iniciar sesión</button><button class="btn btn-g btn-w" style="margin-top:8px" id="ncReg">Registrarme</button><a class="btn btn-g btn-w" style="margin-top:8px;display:block" href="'+waLink('Hola, necesito ayuda con la app Sistema Avícola: no puedo entrar o no tengo mi código de negocio.')+'" target="_blank">¿Dudas? Escríbeme por WhatsApp</a>');
-    $('#ncLogin').onclick=pantallaCodigo;
+    $('#ncLogin').onclick=t?()=>pantallaLogin(t):pantallaCodigo;
     $('#ncReg').onclick=pantallaRegistro;
   }
   function pantallaCodigo(){
@@ -55,8 +56,7 @@
         for(let i=0;i<5;i++){const q=await FBD().collection('negocios').where('code','==',cod).limit(1).get();if(q.empty)break;cod=genCode()}
         const hasta=new Date(Date.now()+30*86400000).toISOString().slice(0,10);
         const ref=await FBD().collection('negocios').add({code:cod,nombre:neg,plan:'prueba',activo:true,fundador:false,creado:Date.now(),hasta,contacto:{nom,mail,wa}});
-        mostrar('<h2>¡Listo, '+esc(nom)+'!</h2><p class="muted">Tu negocio <b>'+esc(neg)+'</b> quedó creado con <b>30 días de prueba</b>. Tu código es:</p><h1 style="letter-spacing:.05em">'+cod+'</h1><button class="btn btn-p btn-w" id="rOk">Vincular este dispositivo</button><a class="btn btn-g btn-w" style="margin-top:8px;display:block" href="'+waLink('Hola, me registré en Sistema Avícola. Mi negocio: '+neg+'. Mi código: '+cod+'. Guardo este mensaje como copia.
- '+neg+'. Mi código: '+cod)+'" target="_blank">Guardar copia por WhatsApp</a>');
+        mostrar('<h2>¡Listo, '+esc(nom)+'!</h2><p class="muted">Tu negocio <b>'+esc(neg)+'</b> quedó creado con <b>30 días de prueba</b>. Tu código es:</p><h1 style="letter-spacing:.05em">'+cod+'</h1><button class="btn btn-p btn-w" id="rOk">Vincular este dispositivo</button><a class="btn btn-g btn-w" style="margin-top:8px;display:block" href="'+waLink('Hola, me registré en Sistema Avícola. Mi negocio: '+neg+'. Mi código: '+cod+'. Guardo este mensaje como copia.')+'" target="_blank">Guardar copia por WhatsApp</a>');
         $('#rOk').onclick=()=>{saveJSON('pc_tenant',{id:ref.id,code:cod,nombre:neg});location.reload()};
       }catch(e){toast('Error: '+e.message)}
     };
@@ -81,6 +81,17 @@
       catch(err){toast('Usuario o clave incorrectos')}
     };
   }
-  function salir(){FBA().signOut();localStorage.removeItem('pc_session');location.reload()}
+  async function asegurarSalirNube(u){
+    const side=$('#side');if(!side||$('#sideOut'))return;
+    const a=document.createElement('a');a.href='#';a.id='sideOut';a.style.color='var(--red)';
+    a.innerHTML='<svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg><span>Cerrar sesión</span>';
+    a.onclick=e=>{e.preventDefault();salir()};
+    side.appendChild(a);
+    try{
+      const t=tenant(),d=await FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid).get();
+      if(d.exists){const p=d.data();const foot=side.querySelector('.side-foot');if(foot)foot.textContent='Conectado: '+p.nom+' ('+(p.rol==='fundador'?'Fundador':p.rol==='admin'?'Admin':(p.ext?'Empleado +':'Empleado'))+')'}
+    }catch(e){}
+  }
+  function salir(){FBA().signOut();localStorage.removeItem('pc_session');saveJSON('pc_justout',1);location.reload()}
   document.addEventListener('DOMContentLoaded',arrancar);
 })();
