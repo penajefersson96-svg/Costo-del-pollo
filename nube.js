@@ -27,7 +27,7 @@
       if(!u){try{const s=await conTope(FBD().collection('negocios/'+t.id+'/usuarios').limit(1).get(),10000);if(s.empty)pantallaPrimerAdmin(t);else pantallaLogin(t)}catch(e){pantallaLogin(t)}return}
       if(window._verif){window._verif=0;return}
       const ok=loadJSON('pc_ok_'+u.uid,0);
-      if(ok&&(Date.now()-ok)<6*3600*1000){continuar(u,FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid),window.NUBE_PERFIL||{});fondo(u,t,0);return}
+      if(ok&&(Date.now()-ok)<6*3600*1000){continuar(u,FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid),window.NUBE_PERFIL||null);fondo(u,t,0);return}
       mostrar('<h2>Verificando sesión…</h2><p class="muted">Un momento.</p>');
       verificar(u,t,1);
     });

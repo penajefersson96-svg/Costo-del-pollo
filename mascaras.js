@@ -10,8 +10,8 @@
     if(!s||rolDe(s)==='emp')document.documentElement.classList.add('premask');
     if(s){USED=s.usu||'';arranque(s)}
     const poll=setInterval(()=>{
-      const p=window.NUBE_PERFIL;
-      if(!p)return;
+            const p=window.NUBE_PERFIL;
+      if(!p||!p.usu)return;
       if(USED===(p.usu||''))return;
       USED=p.usu||'';
       saveJSON('pc_session',{nom:p.nom,usu:p.usu,rol:rolDe(p),ext:!!p.ext});
