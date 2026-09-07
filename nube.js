@@ -37,7 +37,7 @@
       if(!d.exists||d.data().activo===false){patear('<h2>Cuenta eliminada o suspendida</h2><p class="muted">Contacta a tu administrador.</p>');return}
       const p=d.data();window.NUBE_PERFIL=p;
       const side=$('#side'),foot=side?side.querySelector('.side-foot'):null;
-      if(foot)foot.textContent='Conectado: '+p.nom+' ('+(p.rol==='fundador'?'Fundador':p.rol==='admin'?'Admin':(p.ext?'Empleado +':'Empleado'))+')';
+      if(foot)foot.textContent='Conectado: '+p.nom+' ('+(p.rol==='fundador'?'Fundador':p.rol==='admin'?'Admin':(p.ext?'Encargado':'Empleado'))+')';
       if(p.rol==='emp'||p.rol==='ext'){
         try{const nd=await conTope(FBD().collection('negocios').doc(t.id).get(),10000);const hor=(nd.data()&&nd.data().horario)||{ini:'05:00',fin:'21:00'};const hm=new Date();const hh=('0'+hm.getHours()).slice(-2)+':'+('0'+hm.getMinutes()).slice(-2);
         if(hh<hor.ini||hh>hor.fin){patear('<h2>Fuera de horario</h2><p class="muted">Tu jornada es de '+hor.ini+' a '+hor.fin+'.</p>');return}}catch(e){}
@@ -165,9 +165,9 @@
       try{
         let cod=genCode();
         for(let i=0;i<5;i++){const q=await FBD().collection('negocios').where('code','==',cod).limit(1).get();if(q.empty)break;cod=genCode()}
-        const hasta=new Date(Date.now()+30*86400000).toISOString().slice(0,10);
+        const hasta=new Date(Date.now()+45*86400000).toISOString().slice(0,10);
         const ref=await FBD().collection('negocios').add({code:cod,nombre:neg,plan:'prueba',activo:true,fundador:false,creado:Date.now(),hasta,contacto:{nom,mail,wa}});
-        mostrar('<h2>¡Listo, '+esc(nom)+'!</h2><p class="muted">Tu negocio <b>'+esc(neg)+'</b> quedó creado con <b>30 días de prueba</b>. Tu código es:</p><h1 style="letter-spacing:.05em">'+cod+'</h1><button class="btn btn-p btn-w" id="rOk">Vincular este dispositivo</button><a class="btn btn-g btn-w" style="margin-top:8px;display:block" href="'+waLink('Hola, me registré en Sistema Avícola. Mi negocio: '+neg+'. Mi código: '+cod+'. Guardo este mensaje como copia.')+'" target="_blank">Guardar copia por WhatsApp</a>');
+        mostrar('<h2>¡Listo, '+esc(nom)+'!</h2><p class="muted">Tu negocio <b>'+esc(neg)+'</b> quedó creado con <b>45 días de prueba</b>. Tu código es:</p><h1 style="letter-spacing:.05em">'+cod+'</h1><button class="btn btn-p btn-w" id="rOk">Vincular este dispositivo</button><a class="btn btn-g btn-w" style="margin-top:8px;display:block" href="'+waLink('Hola, me registré en Sistema Avícola. Mi negocio: '+neg+'. Mi código: '+cod+'. Guardo este mensaje como copia.')+'" target="_blank">Guardar copia por WhatsApp</a>');
         $('#rOk').onclick=()=>{saveJSON('pc_tenant',{id:ref.id,code:cod,nombre:neg});location.reload()};
       }catch(e){toast('Error: '+e.message)}
     };
@@ -246,7 +246,7 @@
     try{
       const p=window.NUBE_PERFIL||{};
       const foot=side.querySelector('.side-foot');
-      if(foot&&p.nom)foot.textContent='Conectado: '+p.nom+' ('+(p.rol==='fundador'?'Fundador':p.rol==='admin'?'Admin':(p.ext?'Empleado +':'Empleado'))+')';
+      if(foot&&p.nom)foot.textContent='Conectado: '+p.nom+' ('+(p.rol==='fundador'?'Fundador':p.rol==='admin'?'Admin':(p.ext?'Encargado':'Empleado'))+')';
     }catch(e){}
   }
   function salir(){

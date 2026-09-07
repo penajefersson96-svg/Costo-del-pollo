@@ -1,24 +1,33 @@
-/* ══ mascaras.js v3 · perfil al instante ══ */
+/* ══ mascaras.js v4 · perfil vivo, sin destellos y con salir ══ */
 (function(){
-  let LISTO=false;
+  let USED='';
   const S=()=>loadJSON('pc_session',null);
   function rolDe(p){return p?(p.rol==='fundador'?'admin':p.rol):null}
   document.addEventListener('DOMContentLoaded',()=>{
     const s=S();
-    if(s&&rolDe(s)==='emp'){document.documentElement.classList.add('premask');navegar(s)}
+    if(!s||rolDe(s)==='emp')document.documentElement.classList.add('premask');
+    if(s){USED=s.usu||'';arranque(s)}
     const poll=setInterval(()=>{
-      const p=window.NUBE_PERFIL||S();
+      const p=window.NUBE_PERFIL;
       if(!p)return;
-      clearInterval(poll);
-      if(!LISTO){LISTO=true;arranque(p)}
+      if(USED===(p.usu||''))return;
+      USED=p.usu||'';
+      if(rolDe(p)==='emp')document.documentElement.classList.add('premask');
+      arranque(p);
     },100);
-    setTimeout(()=>{clearInterval(poll);if(!LISTO){const s2=S();if(s2){LISTO=true;arranque(s2)}}},4000);
+    const vig=setInterval(()=>{
+      if(window.NUBE_USER&&!$('#sideOut')&&typeof asegurarSalirNube==='function'){try{asegurarSalirNube(window.NUBE_USER)}catch(e){}}
+      const p=window.NUBE_PERFIL;
+      if(p&&rolDe(p)!=='emp')document.documentElement.classList.remove('premask');
+    },1000);
+    setTimeout(()=>clearInterval(vig),9000);
   });
   function arranque(p){
     saveJSON('pc_session',{nom:p.nom,usu:p.usu,rol:rolDe(p),ext:!!p.ext});
     document.body.classList.remove('rol-fund','rol-admin','rol-enc','rol-emp');
     document.body.classList.add(rolDe(p)==='admin'?(p.rol==='fundador'?'rol-fund':'rol-admin'):(p.ext?'rol-enc':'rol-emp'));
     try{if(typeof recortarMenu==='function')recortarMenu();if(typeof paginaPermitida==='function')paginaPermitida()}catch(e){}
+    try{if(typeof asegurarSalirNube==='function'&&window.NUBE_USER)asegurarSalirNube(window.NUBE_USER)}catch(e){}
     navegar(p);
     [0,300,1200,2500].forEach(ms=>setTimeout(aplicar,ms));
   }
