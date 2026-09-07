@@ -1,4 +1,4 @@
-/* ══ mascaras.js v6 · un solo menú, perfil correcto ══ */
+/* ══ mascaras.js v7 · menú correcto sin mareo ══ */
 (function(){
   let USED='';
   const S=()=>loadJSON('pc_session',null);
@@ -6,7 +6,7 @@
   document.addEventListener('DOMContentLoaded',()=>{
     ocultarDinero();
     const s=S();
-    sessionStorage.setItem('pc_menu_usu',(s&&s.usu)||'');
+    saveJSON('pc_menu_usu',(s&&s.usu)||'');
     if(!s||rolDe(s)==='emp')document.documentElement.classList.add('premask');
     if(s){USED=s.usu||'';arranque(s)}
     const poll=setInterval(()=>{
@@ -15,7 +15,13 @@
       if(USED===(p.usu||''))return;
       USED=p.usu||'';
       saveJSON('pc_session',{nom:p.nom,usu:p.usu,rol:rolDe(p),ext:!!p.ext});
-      if((sessionStorage.getItem('pc_menu_usu')||'')!==(p.usu||'')){sessionStorage.setItem('pc_menu_usu',p.usu||'');location.reload();return}
+      const mu=loadJSON('pc_menu_usu','');
+      if(mu!==(p.usu||'')){
+        saveJSON('pc_menu_usu',p.usu||'');
+        const rl=loadJSON('pc_rl',{n:0,ts:0});
+        if(Date.now()-rl.ts>10000){saveJSON('pc_rl',{n:1,ts:Date.now()});location.reload();return}
+        if(rl.n<2){saveJSON('pc_rl',{n:rl.n+1,ts:rl.ts});location.reload();return}
+      }
       arranque(p);
     },100);
     const vig=setInterval(()=>{
