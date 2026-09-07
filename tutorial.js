@@ -44,6 +44,7 @@
     }
     document.body.appendChild(ov);pintar();
   };
+    let chk=setInterval(()=>{if(window.NUBE_USER){clearInterval(chk);lanzarTutorial()}},1000);
   document.addEventListener('DOMContentLoaded',()=>{
     const side=$('#side');if(!side||$('#sideTut'))return;
     const a=document.createElement('a');a.href='#';a.id='sideTut';
