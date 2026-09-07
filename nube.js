@@ -102,6 +102,9 @@
     if(KICK)KICK();
     KICK=ref.onSnapshot(snap=>{if(!snap.exists||snap.data().activo===false){KICK=null;salir()}});
     window.NUBE_USER=u;window.NUBE_PERFIL=p;
+        saveJSON('pc_session',{nom:p.nom,usu:p.usu,rol:p.rol==='fundador'?'admin':p.rol,ext:!!p.ext});
+    document.body.classList.remove('rol-fund','rol-admin','rol-enc','rol-emp');
+    document.body.classList.add(p.rol==='fundador'?'rol-fund':p.rol==='admin'?'rol-admin':(p.ext?'rol-enc':'rol-emp'));
     saveJSON('pc_ok_'+u.uid,Date.now());
     if(!loadJSON('pc_ent_'+u.uid,0))saveJSON('pc_ent_'+u.uid,Date.now());
     window._verif=0;
