@@ -27,10 +27,15 @@
         const d=await ref.get();
         if(!d.exists){await FBA().signOut();mostrar('<h2>Cuenta eliminada</h2><p class="muted">Tu administrador eliminó esta cuenta. Pide una nueva.</p>');return}
                 const p=d.data(),s=p.sesion;
-        if(s&&s.dev&&s.dev!==devid()&&(Date.now()-s.ts)<12*3600*1000){
-          mostrar('<h2>Sesión abierta en otro sitio</h2><p class="muted">Tu cuenta ya está abierta en otro dispositivo. Si eres tú, entra aquí y se cerrará allá.</p><div class="grid2"><button class="btn btn-g" id="sdNo">Cancelar</button><button class="btn btn-p" id="sdSi">Soy yo, entrar aquí</button></div>');
-          $('#sdNo').onclick=async()=>{await FBA().signOut();pantallaLogin(t)};
-          $('#sdSi').onclick=async()=>{await ref.update({sesion:{dev:devid(),ts:Date.now()}});continuar(u,ref,p)};
+                if(s&&s.dev&&s.dev!==devid()&&(Date.now()-s.ts)<12*3600*1000){
+          if(p.rol==='admin'||p.rol==='fundador'){
+            mostrar('<h2>Sesión abierta en otro sitio</h2><p class="muted">Tu cuenta ya está abierta en otro dispositivo. Si eres tú, entra aquí y se cerrará allá.</p><div class="grid2"><button class="btn btn-g" id="sdNo">Cancelar</button><button class="btn btn-p" id="sdSi">Soy yo, entrar aquí</button></div>');
+            $('#sdNo').onclick=async()=>{await FBA().signOut();pantallaLogin(t)};
+            $('#sdSi').onclick=async()=>{await ref.update({sesion:{dev:devid(),ts:Date.now()}});continuar(u,ref,p)};
+          }else{
+            mostrar('<h2>Sesión abierta en otro sitio</h2><p class="muted">Tu cuenta está abierta en el dispositivo de la granja. Pide a tu administrador que cierre esa sesión o te restablezca la clave.</p><button class="btn btn-p btn-w" id="sdNo">Entendido</button>');
+            $('#sdNo').onclick=async()=>{await FBA().signOut();pantallaLogin(t)};
+          }
           return;
         }
         continuar(u,ref,p);
@@ -93,12 +98,31 @@
     };
   }
   function pantallaLogin(t,msg){
-    mostrar('<h2>'+esc(t.nombre||'Sistema Avícola')+'</h2><p class="muted">Código '+esc(t.code)+' · entra con tu usuario</p><div class="field"><label>Usuario</label><input id="lgU2"></div><div class="field"><label>Clave</label><input id="lgP2" type="password"></div><button class="btn btn-p btn-w" id="lgB2">Entrar</button><p id="lgErr" style="color:var(--red);margin-top:8px">'+(msg?esc(msg):'')+'</p><p class="muted" style="margin-top:8px"><a href="#" id="lgOtro">Cambiar de negocio</a></p>');
-    $('#lgOtro').onclick=e=>{e.preventDefault();localStorage.removeItem('pc_tenant');location.reload()};
+    mostrar('<h2>'+esc(t.nombre||'Sistema Avícola')+'</h2><p class="muted">Código '+esc(t.code)+' · entra con tu usuario</p><div class="field"><label>Usuario</label><input id="lgU2"></div><div class="field"><label>Clave</label><input id="lgP2" type="password"></div><button class="btn btn-p btn-w" id="lgB2">Entrar</button><p id="lgErr" style="color:var(--red);margin-top:8px">'+(msg?esc(msg):'')+'</p><p class="muted" style="margin-top:8px"><a href="#" id="lgOlvi">Olvidé mi clave</a> · <a href="#" id="lgOtro">Cambiar de negocio</a></p>');
+        $('#lgOlvi').onclick=async e=>{
+      e.preventDefault();
+      const usu=prompt('Escribe tu usuario:');if(!usu)return;
+      try{
+        const q=await FBD().collection('negocios/'+t.id+'/usuarios').where('usu','==',usu.trim().toLowerCase()).limit(1).get();
+        if(q.empty){toast('Usuario no encontrado');return}
+        if(!q.docs[0].data().mail){toast('Sin correo registrado: pide ayuda a tu administrador');return}
+        await FBA().sendPasswordResetEmail(correo(usu.trim(),t.id));
+        toast('Te enviamos un correo para restablecer la clave');
+      }catch(err){toast('Error: '+err.message)}
+    };
     $('#lgB2').onclick=async()=>{
-      $('#lgB2').textContent='Entrando…';
-      try{await FBA().signInWithEmailAndPassword(correo($('#lgU2').value.trim(),t.id),$('#lgP2').value);toast('Bienvenido')}
-      catch(err){$('#lgB2').textContent='Entrar';const er=$('#lgErr');if(er)er.textContent='Usuario o clave incorrectos'}
+            $('#lgB2').textContent='Entrando…';
+      try{
+        await Promise.race([
+          FBA().signInWithEmailAndPassword(correo($('#lgU2').value.trim(),t.id),$('#lgP2').value),
+          new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),15000))
+        ]);
+        toast('Bienvenido');
+      }catch(err){
+        $('#lgB2').textContent='Entrar';
+        const er=$('#lgErr');
+        if(er)er.textContent=err.message==='timeout'?'La red no responde: revisa tu internet y reintenta':'Usuario o clave incorrectos';
+      }
     };
   }
   async function asegurarSalirNube(u){

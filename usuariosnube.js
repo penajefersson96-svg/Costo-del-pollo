@@ -31,5 +31,24 @@
       ins[0].value='';if(ins[1])ins[1].value='';ins[3].value='';ins[4].value='';if(ins[2])ins[2].checked=false;
       if(typeof render==='function')render();
     };
+    const esp=setInterval(()=>{
+      const perfil=window.NUBE_PERFIL;if(!perfil)return;
+      clearInterval(esp);
+      if(perfil.rol!=='admin'&&perfil.rol!=='fundador')return;
+      const card=nb.closest('.card');if(!card||$('#csBtn'))return;
+      const wrap=document.createElement('div');wrap.style.marginTop='12px';
+      wrap.innerHTML='<label style="font-size:12px;color:var(--mut)">CERRAR SESIÓN ABIERTA DE UN EMPLEADO</label><div class="grid2"><input id="csUsu" placeholder="usuario"><button class="btn btn-g" id="csBtn">Cerrar sesión</button></div>';
+      card.appendChild(wrap);
+      $('#csBtn').onclick=async()=>{
+        const usu=$('#csUsu').value.trim().toLowerCase();if(!usu)return;
+        const t=loadJSON('pc_tenant',null);
+        try{
+          const q=await db.collection('negocios/'+t.id+'/usuarios').where('usu','==',usu).limit(1).get();
+          if(q.empty){toast('Usuario no encontrado');return}
+          await q.docs[0].ref.update({sesion:null});
+          toast('Sesión cerrada: ya puede entrar de nuevo');
+        }catch(e){toast('Error: '+e.message)}
+      };
+    },800);
   });
 })();
