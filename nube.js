@@ -31,7 +31,7 @@
       verificar(u,t,1);
     });
   }
-    function fondo(u,t){
+    function fondo(u,t,n){
     conTope(FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid).get(),10000).then(async d=>{
       if(!d.exists||d.data().activo===false){patear('<h2>Cuenta eliminada o suspendida</h2><p class="muted">Contacta a tu administrador.</p>');return}
       const p=d.data();window.NUBE_PERFIL=p;
@@ -42,7 +42,7 @@
         if(hh<hor.ini||hh>hor.fin){patear('<h2>Fuera de horario</h2><p class="muted">Tu jornada es de '+hor.ini+' a '+hor.fin+'.</p>');return}}catch(e){}
       }
       if(p.rol==='admin'||p.rol==='fundador'){const ent=loadJSON('pc_ent_'+u.uid,0);if(ent&&(Date.now()-ent)>6*3600*1000){patear('<h2>Sesión expirada</h2><p class="muted">Pasaron 6 horas: vuelve a entrar.</p>');return}}
-    }).catch(()=>{});
+    }).catch(()=>{if((n||0)<1)setTimeout(()=>fondo(u,t,(n||0)+1),5000)});
   }
   function patear(html){if(KICK){KICK();KICK=null}try{FBA().signOut()}catch(e){}mostrar(html)}
   async function verificar(u,t,intento){
