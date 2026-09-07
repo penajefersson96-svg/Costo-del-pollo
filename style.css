@@ -90,3 +90,4 @@ body{animation:aparecer .28s ease-out}
 .loginCard{background:#fff;border-radius:16px;padding:24px;max-width:340px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.25)}
 .loginCard h2{margin-bottom:14px}
 #loginOv{background:#F3F5F2}
+html.premask main{visibility:hidden}

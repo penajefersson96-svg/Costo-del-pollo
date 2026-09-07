@@ -1,6 +1,17 @@
-/* ══ mascaras.js · cada rango ve lo que le toca ══ */
+/* ══ mascaras.js v2 · sin parpadeo + reporte de equipo ══ */
 (function(){
-  function listo(){return window.NUBE_PERFIL}
+  const S=()=>loadJSON('pc_session',null)||window.NUBE_PERFIL||null;
+  document.addEventListener('DOMContentLoaded',()=>{
+    const p=S();if(p&&p.rol==='emp')document.documentElement.classList.add('premask');
+    navegar();
+    [400,1200,2500,4000].forEach(ms=>setTimeout(aplicar,ms));
+  });
+  function navegar(){
+    const p=S();if(!p||p.rol!=='emp')return;
+    const enc=!!p.ext;
+    const pag=(location.pathname.split('/').pop()||'index.html');
+    if(pag==='index.html'||pag===''||pag==='usuarios2.html'||(!enc&&pag==='calculo2.html'))location.replace('lotes2.html');
+  }
   function ocultarDinero(){
     document.querySelectorAll('.t,.s,b,strong,div,span').forEach(el=>{
       if(el.children.length===0&&/\$|ganancia|inversión/i.test(el.textContent||''))el.style.display='none';
@@ -13,20 +24,10 @@
   function ocultarBotones(textos){
     document.querySelectorAll('button,a.btn').forEach(b=>{textos.forEach(t=>{if((b.textContent||'').trim().toLowerCase().indexOf(t.toLowerCase())===0)b.style.display='none'})});
   }
-  function navegar(){
-    const p=listo();if(!p)return;
-    const rol=p.rol==='fundador'?'admin':p.rol;const enc=!!p.ext&&rol==='emp';
-    const pag=(location.pathname.split('/').pop()||'index.html');
-    if(rol==='emp'){
-      if(pag==='index.html'||pag===''){location.replace('lotes2.html');return}
-      if(pag==='usuarios2.html'){location.replace('lotes2.html');return}
-      if(!enc&&pag==='calculo2.html'){location.replace('lotes2.html');return}
-    }
-  }
   function aplicar(){
-    const p=listo();if(!p)return;
-    const rol=p.rol==='fundador'?'admin':p.rol;const enc=!!p.ext&&rol==='emp';
-    if(rol!=='emp')return;
+    const p=window.NUBE_PERFIL||S();if(!p)return;
+    if(p.rol!=='emp'){document.documentElement.classList.remove('premask');return}
+    const enc=!!p.ext;
     ocultarDinero();
     if(enc){
       ocultarPorTexto(['.field'],'precio|costo|bs|ganancia|inversión');
@@ -35,6 +36,30 @@
       ocultarPorTexto(['.field','.card'],'precio|costo|ganancia|inversión|compra');
       ocultarBotones(['Cerrar','Eliminar','Borrar','Registrar compra','Agregar compra','Nueva compra']);
     }
+    botonReporteEquipo();
+    document.documentElement.classList.remove('premask');
   }
-  document.addEventListener('DOMContentLoaded',()=>{navegar();setTimeout(aplicar,600);setTimeout(aplicar,1800);setTimeout(aplicar,3500)});
+  function botonReporteEquipo(){
+    document.querySelectorAll('button,a.btn').forEach(b=>{
+      if(!/reporte/i.test(b.textContent||'')||b.dataset.eqrep)return;
+      b.dataset.eqrep='1';
+      const nb=b.cloneNode(true);b.parentNode.replaceChild(nb,b);
+      nb.onclick=e=>{e.preventDefault();reporteDiario()};
+    });
+  }
+  async function reporteDiario(){
+    const p=window.NUBE_PERFIL||{};const t=loadJSON('pc_tenant',null);
+    const hoy=new Date().toISOString().slice(0,10);
+    let txt='*REPORTE DEL DÍA* '+hoy+'\nNegocio: '+(t?t.nombre:'-')+'\nEnvía: '+(p.nom||'-')+' ('+(p.ext?'Encargado':'Empleado')+')';
+    const lotes=loadJSON('pc_lotes',[]);
+    let n=0;
+    lotes.forEach(l=>{(l.muertos||[]).forEach(m=>{if(String(m.f||'').indexOf(hoy)===0){n++;txt+='\n• Lote '+(l.nombre||l.id)+': '+m.c+' muertos ('+(m.causa||'sin causa')+')'}})});
+    const cons=loadJSON('pc_consumo',loadJSON('pc_consumos',[]))||[];
+    cons.forEach(c=>{if(String(c.f||'').indexOf(hoy)===0){n++;txt+='\n• Consumo: '+(c.art||c.articulo||'-')+' x'+(c.cant||c.cantidad||'-')+' — '+(c.motivo||'')}});
+    if(!n)txt+='\n• Sin novedades hoy';
+    let wa='';
+    if(t&&window.db){try{const d=await db.collection('negocios').doc(t.id).get();wa=(d.data()&&d.data().contacto&&d.data().contacto.wa)||''}catch(e){}}
+    if(wa)location.href='https://wa.me/'+wa+'?text='+encodeURIComponent(txt);
+    else{try{await navigator.clipboard.writeText(txt);toast('Reporte copiado: pégalo al admin')}catch(e){toast(txt)}}
+  }
 })();

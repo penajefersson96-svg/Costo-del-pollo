@@ -54,5 +54,6 @@
     a.innerHTML='<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z"/></svg><span>Tutorial</span>';
     a.onclick=e=>{e.preventDefault();lanzarTutorial(true)};
     side.appendChild(a);
+        document.querySelectorAll('button,a').forEach(b=>{if((b.textContent||'').trim()==='Ver más'){b.onclick=e=>{e.preventDefault();lanzarTutorial(true)}}});
   });
 })();
