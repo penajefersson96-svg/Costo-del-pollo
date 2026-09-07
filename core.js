@@ -84,7 +84,7 @@ function buildSide(){
   const links=[['index.html','Inicio','M3 10.5L12 3l9 7.5V21h-5v-6h-4v6H3z'],['calculo2.html','Cálculo','M5 3h14v18H5zM8 7h8M8 11h8M8 15h5'],['lotes2.html','Lotes','M4 8h16M4 12h16M4 16h16'],['inventario2.html','Inventario','M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10'],['usuarios2.html','Usuarios','M12 12a4 4 0 100-8 4 4 0 000 8zM4 20c0-4 4-6 8-6s8 2 8 6']];
   const cur=location.pathname.split('/').pop()||'index.html';
   const side=document.createElement('aside');side.id='side';
-  side.innerHTML='<div class="side-head"><div class="biz">'+esc(negocio())+'</div><div class="prod">Sistema avícola</div></div>'+links.map(l=>'<a href="'+l[0]+'" class="'+(cur===l[0]?'on':'')+'"><svg viewBox="0 0 24 24"><path d="'+l[2]+'"/></svg><span>'+l[1]+'</span>'+''+'</a>').join('')+'<div class="side-foot">v2 • sincronizado en la nube</div>';
+  side.innerHTML='<div class="side-head"><div class="biz">'+esc(negocio())+'</div><div class="prod">Sistema avícola</div></div>'+links.map(l=>'<a href="'+l[0]+'" class="'+(cur===l[0]?'on':'')+'"><svg viewBox="0 0 24 24"><path d="'+l[2]+'"/></svg><span>'+l[1]+'</span>'+''+'</a>').join('')+'<div class="side-foot"> v2 • sincronizado en la nube </div>';
   document.body.appendChild(side);
   const back=document.createElement('div');back.id='sideBack';back.onclick=()=>{side.classList.remove('open');back.classList.remove('open')};document.body.appendChild(back);
   const btn=document.createElement('button');btn.id='menuBtn';btn.setAttribute('aria-label','Menú');btn.innerHTML='<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
