@@ -17,6 +17,7 @@
     const t=tenant();
     if(!t){pantallaInicio();return}
     if(loadJSON('pc_justout',0)){localStorage.removeItem('pc_justout');pantallaInicio(t);return}
+    mostrar('<h2>Verificando sesión…</h2><p class="muted">Un momento.</p>');
     FBA().onAuthStateChanged(async u=>{
       if(u){ocultar();window.NUBE_USER=u;asegurarSalirNube(u);setTimeout(()=>{if(window.lanzarTutorial)lanzarTutorial()},900);return}
       try{
@@ -77,6 +78,7 @@
     mostrar('<h2>'+esc(t.nombre||'Sistema Avícola')+'</h2><p class="muted">Código '+esc(t.code)+' · entra con tu usuario</p><div class="field"><label>Usuario</label><input id="lgU2"></div><div class="field"><label>Clave</label><input id="lgP2" type="password"></div><button class="btn btn-p btn-w" id="lgB2">Entrar</button><p class="muted" style="margin-top:8px"><a href="#" id="lgOtro">Cambiar de negocio</a></p>');
     $('#lgOtro').onclick=e=>{e.preventDefault();localStorage.removeItem('pc_tenant');location.reload()};
     $('#lgB2').onclick=async()=>{
+    $('#lgB2').textContent='Entrando…';
       try{await FBA().signInWithEmailAndPassword(correo($('#lgU2').value.trim(),t.id),$('#lgP2').value);toast('Bienvenido')}
       catch(err){toast('Usuario o clave incorrectos')}
     };
