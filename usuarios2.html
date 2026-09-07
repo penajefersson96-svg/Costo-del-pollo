@@ -10,6 +10,7 @@
 <script src="fb.js"></script>
 <script src="nube.js"></script>
 <script src="tutorial.js"></script>
+<script src="usuariosnube.js"></script>
 </head>
 <body>
 <header class="top">
@@ -17,6 +18,13 @@
   <div class="date"></div>
 </header>
 <main class="page">
+  <div class="card"><h2>Usuarios en la nube</h2>
+<div class="field"><label>Nombre</label><input id="cuNom"></div>
+<div class="field"><label>Usuario</label><input id="cuUsu"></div>
+<div class="field"><label>Clave (mín. 6)</label><input id="cuPin" type="password"></div>
+<div class="field"><label>Rango</label><select id="cuRol"><option value="admin">Admin</option><option value="emp">Empleado</option><option value="ext">Empleado +</option></select></div>
+<button class="btn btn-p btn-w" id="cuBtn">Crear en la nube</button>
+<div id="cuList" style="margin-top:10px"></div></div>
   <section class="card">
     <h2>Equipo</h2>
     <div id="usersList"></div>

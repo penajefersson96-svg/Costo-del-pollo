@@ -79,7 +79,9 @@
     $('#lgOtro').onclick=e=>{e.preventDefault();localStorage.removeItem('pc_tenant');location.reload()};
     $('#lgB2').onclick=async()=>{
     $('#lgB2').textContent='Entrando…';
+            $('#lgB2').textContent='Entrando…';
       try{await FBA().signInWithEmailAndPassword(correo($('#lgU2').value.trim(),t.id),$('#lgP2').value);toast('Bienvenido')}
+      catch(err){$('#lgB2').textContent='Entrar';const er=$('#lgErr');if(er)er.textContent='Usuario o clave incorrectos';else toast('Usuario o clave incorrectos')}
       catch(err){toast('Usuario o clave incorrectos')}
     };
   }
