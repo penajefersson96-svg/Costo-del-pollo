@@ -26,16 +26,23 @@
         const ref=FBD().collection('negocios/'+t.id+'/usuarios').doc(u.uid);
         const d=await ref.get();
         if(!d.exists){await FBA().signOut();mostrar('<h2>Cuenta eliminada</h2><p class="muted">Tu administrador eliminó esta cuenta. Pide una nueva.</p>');return}
-        const p=d.data(),s=p.sesion;
-        if(s&&s.dev&&s.dev!==devid()&&(Date.now()-s.ts)<12*3600*1000){await FBA().signOut();pantallaLogin(t,'Esta cuenta ya tiene sesión abierta en otro dispositivo.');return}
-        await ref.update({sesion:{dev:devid(),ts:Date.now()}});
-        if(KICK)KICK();
-        KICK=ref.onSnapshot(snap=>{if(!snap.exists||snap.data().activo===false){KICK=null;salir()}});
-        window.NUBE_USER=u;window.NUBE_PERFIL=p;
-        ocultar();asegurarSalirNube(u);
-        setTimeout(()=>{if(window.lanzarTutorial)lanzarTutorial()},900);
+                const p=d.data(),s=p.sesion;
+        if(s&&s.dev&&s.dev!==devid()&&(Date.now()-s.ts)<12*3600*1000){
+          mostrar('<h2>Sesión abierta en otro sitio</h2><p class="muted">Tu cuenta ya está abierta en otro dispositivo. Si eres tú, entra aquí y se cerrará allá.</p><div class="grid2"><button class="btn btn-g" id="sdNo">Cancelar</button><button class="btn btn-p" id="sdSi">Soy yo, entrar aquí</button></div>');
+          $('#sdNo').onclick=async()=>{await FBA().signOut();pantallaLogin(t)};
+          $('#sdSi').onclick=async()=>{await ref.update({sesion:{dev:devid(),ts:Date.now()}});continuar(u,ref,p)};
+          return;
+        }
+        continuar(u,ref,p);
       }catch(e){ocultar();pantallaLogin(t,'Error de verificación: '+e.message)}
     });
+  }
+    function continuar(u,ref,p){
+    if(KICK)KICK();
+    KICK=ref.onSnapshot(snap=>{if(!snap.exists||snap.data().activo===false){KICK=null;salir()}});
+    window.NUBE_USER=u;window.NUBE_PERFIL=p;
+    ocultar();asegurarSalirNube(u);
+    setTimeout(()=>{if(window.lanzarTutorial)lanzarTutorial()},900);
   }
   function pantallaInicio(t){
     mostrar('<h2>Sistema Avícola</h2><p class="muted">Bienvenido. Entra con el código de tu negocio o regístrate.</p><button class="btn btn-p btn-w" id="ncLogin">Iniciar sesión</button><button class="btn btn-g btn-w" style="margin-top:8px" id="ncReg">Registrarme</button><a class="btn btn-g btn-w" style="margin-top:8px;display:block" href="'+waLink('Hola, necesito ayuda con la app Sistema Avícola: no puedo entrar o no tengo mi código de negocio.')+'" target="_blank">¿Dudas? Escríbeme por WhatsApp</a>');
