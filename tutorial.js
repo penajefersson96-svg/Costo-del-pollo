@@ -1,4 +1,4 @@
-/* ══ tutorial.js · guía por pestaña y por rol, rever cuando quieras ══ */
+/* ══ tutorial.js · guía por pestaña y por rol ══ */
 (function(){
   const T={
     fundador:[
@@ -10,6 +10,7 @@
       ['Usuarios','Crea socios y empleados con rango, comparte el link de la app y mira dispositivos vinculados.']
     ],
     admin:[
+      ['Bienvenido, Admin','Mandas en tu negocio: lotes, inventario, usuarios y reportes.'],
       ['Inicio','Resumen de lotes activos, nombre del negocio, respaldo (Guardar/Restaurar archivo) y aprobaciones cuando hay 2 admins.'],
       ['Cálculo','Crear un lote: pollitos, alimento por ave, precios y gastos. La app calcula costo/kg, carne e ingreso. Guardar lo publica en Lotes.'],
       ['Lotes','Cada lote con su semáforo (OK/ALERTA/CRÍTICO), día y vivos. Reporte = gráfica por WhatsApp. Cerrar = fin de ciclo con ganancia.'],
@@ -17,34 +18,36 @@
       ['Usuarios','Crea usuarios con rango (admin/empleado/empleado +), cambia claves y comparte el link de instalación.']
     ],
     emp:[
-      ['Tu menú','Ves solo Lotes e Inventario: tu trabajo es reportar, no ver plata.'],
+      ['Bienvenido, Empleado','Tu labor: reportar lo que pasa en la granja. El dinero no se muestra en tu pantalla: eso es del admin.'],
       ['Lotes → Reportar muertos','Fecha, cantidad y causa de las bajas. Queda marcado al lote y el admin lo ve al instante.'],
       ['Inventario → Consumo diario','Fecha, lote, artículo, cantidad y el motivo obligatorio del gasto.']
     ],
     ext:[
-      ['Tu menú','Como empleado, más ver resultados y cerrar lotes cuando termine el ciclo.'],
+      ['Bienvenido, Empleado +','Ves lotes y resultados como el admin, pero no editas costos ni borras nada.'],
       ['Lotes','Semáforo y vivos por lote; botón Cerrar para finalizar el ciclo. No editas costos ni borras.'],
       ['Reportar','Muertos y consumo con motivo, igual que empleado.']
     ]
   };
   function rolDe(p){return p.rol==='fundador'?'fundador':p.rol==='admin'?'admin':(p.ext?'ext':'emp')}
   window.lanzarTutorial=async function(forzar){
+    if(document.querySelector('[data-tutov]'))return;
     const u=window.NUBE_USER,t=loadJSON('pc_tenant',null);
     if(!u||!t)return;
     if(!forzar&&loadJSON('pc_tut_'+u.uid,0))return;
     let p=null;
     try{const d=await db.collection('negocios/'+t.id+'/usuarios').doc(u.uid).get();if(d.exists)p=d.data()}catch(e){return}
     if(!p)return;
+    if(document.querySelector('[data-tutov]'))return;
     const pasos=T[rolDe(p)]||T.emp;let i=0;
-    const ov=document.createElement('div');ov.id='loginOv';ov.style.display='flex';
+    const ov=document.createElement('div');ov.id='loginOv';ov.setAttribute('data-tutov','1');ov.style.display='flex';
     function pintar(){
       ov.innerHTML='<div class="loginCard"><h2>'+pasos[i][0]+'</h2><p class="muted">'+pasos[i][1]+'</p><p class="muted" style="margin-top:10px">Paso '+(i+1)+' de '+pasos.length+'</p><div class="grid2"><button class="btn btn-g" id="tSkip">Saltar</button><button class="btn btn-p" id="tNext">'+(i<pasos.length-1?'Siguiente':'Empezar a trabajar')+'</button></div></div>';
-      $('#tSkip').onclick=()=>{saveJSON('pc_tut_'+u.uid,1);ov.remove()};
-      $('#tNext').onclick=()=>{if(i<pasos.length-1){i++;pintar()}else{saveJSON('pc_tut_'+u.uid,1);ov.remove()}};
+      ov.querySelector('#tSkip').onclick=()=>{saveJSON('pc_tut_'+u.uid,1);ov.remove()};
+      ov.querySelector('#tNext').onclick=()=>{if(i<pasos.length-1){i++;pintar()}else{saveJSON('pc_tut_'+u.uid,1);ov.remove()}};
     }
     document.body.appendChild(ov);pintar();
   };
-    let chk=setInterval(()=>{if(window.NUBE_USER){clearInterval(chk);lanzarTutorial()}},1000);
+  let chk=setInterval(()=>{if(window.NUBE_USER){clearInterval(chk);lanzarTutorial()}},1000);
   document.addEventListener('DOMContentLoaded',()=>{
     const side=$('#side');if(!side||$('#sideTut'))return;
     const a=document.createElement('a');a.href='#';a.id='sideTut';
