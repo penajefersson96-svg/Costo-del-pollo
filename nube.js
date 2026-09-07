@@ -9,8 +9,8 @@
   function FBD(){if(!window.db&&typeof firebase!=='undefined'&&firebase.firestore)window.db=firebase.firestore();return window.db}
   function FBA(){if(!window.auth&&typeof firebase!=='undefined'&&firebase.auth)window.auth=firebase.auth();return window.auth}
   async function arrancar(){
-    try{await fbListo}catch(e){}
-    if(typeof firebase==='undefined'){mostrar('<h2>Sin conexión</h2><p class="muted">Revisa tu internet y recarga la página.</p>');return}
+        try{await fbListo}catch(e){}
+    if(!window.db){mostrar('<h2>Conectando con la nube…</h2><p class="muted">Si esto no avanza, revisa tu internet.</p><button class="btn btn-p btn-w" onclick="location.reload()">Reintentar</button>');return}
     const t=tenant();
     if(!t){pantallaCodigo();return}
     FBA().onAuthStateChanged(u=>{if(u){ocultar();window.NUBE_USER=u}else pantallaLogin(t)});
