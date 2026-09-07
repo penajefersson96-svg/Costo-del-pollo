@@ -1,4 +1,4 @@
-/* ══ mascaras.js v5 · menú reconstruible y dinero precavido ══ */
+/* ══ mascaras.js v6 · un solo menú, perfil correcto ══ */
 (function(){
   let USED='';
   const S=()=>loadJSON('pc_session',null);
@@ -6,6 +6,7 @@
   document.addEventListener('DOMContentLoaded',()=>{
     ocultarDinero();
     const s=S();
+    sessionStorage.setItem('pc_menu_usu',(s&&s.usu)||'');
     if(!s||rolDe(s)==='emp')document.documentElement.classList.add('premask');
     if(s){USED=s.usu||'';arranque(s)}
     const poll=setInterval(()=>{
@@ -13,7 +14,8 @@
       if(!p)return;
       if(USED===(p.usu||''))return;
       USED=p.usu||'';
-      if(rolDe(p)==='emp')document.documentElement.classList.add('premask');
+      saveJSON('pc_session',{nom:p.nom,usu:p.usu,rol:rolDe(p),ext:!!p.ext});
+      if((sessionStorage.getItem('pc_menu_usu')||'')!==(p.usu||'')){sessionStorage.setItem('pc_menu_usu',p.usu||'');location.reload();return}
       arranque(p);
     },100);
     const vig=setInterval(()=>{
@@ -42,8 +44,7 @@
     saveJSON('pc_session',{nom:p.nom,usu:p.usu,rol:rolDe(p),ext:!!p.ext});
     document.body.classList.remove('rol-fund','rol-admin','rol-enc','rol-emp');
     document.body.classList.add(rolDe(p)==='admin'?(p.rol==='fundador'?'rol-fund':'rol-admin'):(p.ext?'rol-enc':'rol-emp'));
-    try{if(typeof buildSide==='function')buildSide()}catch(e){}
-    try{if(typeof recortarMenu==='function')recortarMenu();if(typeof paginaPermitida==='function')paginaPermitida()}catch(e){}
+    try{if(typeof paginaPermitida==='function')paginaPermitida()}catch(e){}
     try{if(typeof asegurarSalirNube==='function'&&window.NUBE_USER)asegurarSalirNube(window.NUBE_USER)}catch(e){}
     try{
       const side=$('#side');
