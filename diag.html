@@ -1,27 +1,59 @@
-<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Diagnóstico v2</title>
-<style>body{font-family:monospace;padding:16px;background:#111;color:#0f0;white-space:pre-wrap;font-size:12px}</style>
-<script src="fb.js"></script></head><body><div id="out">Cargando…</div>
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Diagnóstico v3</title>
+<style>body{font-family:monospace;padding:16px;background:#111;color:#0f0;white-space:pre-wrap;font-size:12px}#cp{position:fixed;bottom:12px;right:12px;padding:10px 16px;background:#0f0;color:#111;border:0;border-radius:8px;font-weight:bold}</style>
+<script src="fb.js"></script></head><body><div id="out">Cargando…</div><button id="cp">Copiar reporte</button>
 <script>
 (async function(){
-  const L=[];const p=s=>{L.push(s);document.getElementById('out').textContent=L.join('\n')};
+  const L=[],V=[];
+  const render=()=>{document.getElementById('out').textContent='=== VEREDICTO ===\n'+(V.length?V.join('\n'):'…')+'\n\n=== DETALLE ===\n'+L.join('\n')+'\n--- FIN ---'};
+  const p=s=>{L.push(s);render()};
+  const ok=(c,label)=>{V.push((c?'✅ ':'❌ ')+label);render()};
   p('FECHA: '+new Date().toISOString());
-  try{await fbListo;p('SDK: '+(window.db?'OK':'SIN DB'))}catch(e){p('SDK ERROR: '+e.message)}
+  let sdk=false;
+  try{await fbListo;sdk=!!window.db;p('SDK: '+(sdk?'OK':'SIN DB'))}catch(e){p('SDK ERROR: '+e.message)}
+  ok(sdk,'SDK conectado');
   p('auth: '+((window.auth&&auth.currentUser)?auth.currentUser.email:'sin sesión'));
-  Object.keys(localStorage).sort().forEach(k=>{if(k.indexOf('pc_')===0)p('LS '+k+': '+String(localStorage.getItem(k)).slice(0,200))});
-  p('ERRORES APP: '+(localStorage.getItem('pc_err')||'ninguno'));
+  const err=localStorage.getItem('pc_err');
+  p('ERRORES APP: '+(err||'ninguno'));
+  ok(!err,'Sin errores capturados en páginas');
   const MARK={'nube.js':['dentroHor','logErr'],'mascaras.js':['v8'],'usuariosnube.js':['v7'],'tutorial.js':['data-tutov'],'admintools.js':['Herramientas'],'sw.js':['v4'],'core.js':['recortarMenu'],'fb.js':['fbListo']};
+  let filesOk=true;
   for(const f in MARK){
-    try{const r=await fetch(f+'?'+Date.now());const t=await r.text();const miss=MARK[f].filter(m=>t.indexOf(m)<0);p('FILE '+f+': '+(miss.length?'FALTA: '+miss.join(','):'OK'))}catch(e){p('FILE '+f+': ERROR '+e.message)}
+    const t0=performance.now();
+    try{
+      const r=await fetch(f+'?'+Date.now());const t=await r.text();
+      const ms=Math.round(performance.now()-t0);
+      const miss=MARK[f].filter(m=>t.indexOf(m)<0);
+      if(miss.length){filesOk=false;p('FILE '+f+': FALTA '+miss.join(',')+' ('+ms+'ms)')}
+      else p('FILE '+f+': OK ('+ms+'ms) · '+(t.split('\n')[0]||'').slice(0,60));
+    }catch(e){filesOk=false;p('FILE '+f+': ERROR '+e.message)}
   }
+  ok(filesOk,'Archivos publicados correctos');
   p('sw: '+('serviceWorker' in navigator?(navigator.serviceWorker.controller?'controlado':'sin control'):'n/a'));
+  const ses=localStorage.getItem('pc_session');
+  p('LS pc_session: '+ses);
+  ok(!!ses,'Perfil local presente');
+  const ten=localStorage.getItem('pc_tenant');
+  p('LS pc_tenant: '+ten);
+  ok(!!ten,'Negocio vinculado');
+  Object.keys(localStorage).sort().forEach(k=>{if(k.indexOf('pc_')===0&&['pc_session','pc_tenant','pc_err'].indexOf(k)<0)p('LS '+k+': '+String(localStorage.getItem(k)).slice(0,160))});
   try{
     const ns=await db.collection('negocios').get();
     p('NEGOCIOS: '+ns.size);
-    for(const d of ns.docs){const n=d.data();p(' - '+d.id+' | '+n.code+' | '+n.nombre+' | plan:'+n.plan+' | activo:'+n.activo+' | hor:'+JSON.stringify(n.horario||null));
+    ok(ns.size>=1,'Negocios en la nube');
+    for(const d of ns.docs){
+      const n=d.data();
+      const horOK=!n.horario||(/^\d{2}:\d{2}$/.test(n.horario.ini)&&/^\d{2}:\d{2}$/.test(n.horario.fin));
+      p(' - '+d.id+' | '+n.code+' | '+n.nombre+' | plan:'+n.plan+' | activo:'+n.activo+' | hor:'+JSON.stringify(n.horario||null)+(n.horario&&(n.horario.ini>n.horario.fin)?' (turno nocturno)':''));
+      ok(horOK,'Horario válido en '+n.code);
       const us=await db.collection('negocios/'+d.id+'/usuarios').get();
-      for(const u of us.docs){const q=u.data();p('    * '+JSON.stringify(q.usu)+' | '+JSON.stringify(q.rol)+(q.ext?'+':'')+' | ses:'+(q.sesion?q.sesion.dev:'libre'));}
+      for(const u of us.docs){
+        const q=u.data();
+        const viejo=q.sesion&&(Date.now()-q.sesion.ts)>12*3600*1000;
+        p('    * '+JSON.stringify(q.usu)+' | '+JSON.stringify(q.rol)+(q.ext?'+':'')+' | ses:'+(q.sesion?q.sesion.dev+(viejo?' (VIEJA>12h)':''):'libre'));
+      }
     }
-  }catch(e){p('FS ERROR: '+e.message)}
-  p('--- FIN: copia todo y pégalo ---');
+  }catch(e){p('FS ERROR: '+e.message);ok(false,'Lectura de nube')}
+  ok(V.filter(x=>x.indexOf('❌')===0).length===0,'SISTEMA LISTO PARA PRUEBA DE APP');
+  document.getElementById('cp').onclick=()=>{navigator.clipboard.writeText(document.getElementById('out').textContent).then(()=>{document.getElementById('cp').textContent='¡Copiado!'})};
 })();
 </script></body></html>
