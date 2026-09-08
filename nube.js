@@ -79,15 +79,9 @@
         const ent=loadJSON('pc_ent_'+u.uid,0);
         if(ent&&(Date.now()-ent)>6*3600*1000){await FBA().signOut();mostrar('<h2>Sesión expirada</h2><p class="muted">Por seguridad tu sesión terminó tras 6 horas. Vuelve a entrar.</p>');return}
       }
-      if(s&&s.dev&&s.dev!==devid()&&(Date.now()-s.ts)<12*3600*1000){
-        if(p.rol==='admin'||p.rol==='fundador'){
-          mostrar('<h2>Sesión abierta en otro sitio</h2><p class="muted">Tu cuenta ya está abierta en otro dispositivo. Si eres tú, entra aquí y se cerrará allá.</p><div class="grid2"><button class="btn btn-g" id="sdNo">Cancelar</button><button class="btn btn-p" id="sdSi">Soy yo, entrar aquí</button></div>');
-          $('#sdNo').onclick=async()=>{await FBA().signOut();pantallaLogin(t)};
-          $('#sdSi').onclick=async()=>{await ref.update({sesion:{dev:devid(),ts:Date.now()}});continuar(u,ref,p)};
-        }else{
-          mostrar('<h2>Sesión abierta en otro sitio</h2><p class="muted">Tu cuenta está abierta en el dispositivo de la granja. Pide a tu administrador que cierre esa sesión o te restablezca la clave.</p><button class="btn btn-p btn-w" id="sdNo">Entendido</button>');
-          $('#sdNo').onclick=async()=>{await FBA().signOut();pantallaLogin(t)};
-        }
+            if(s&&s.dev&&s.dev!==devid()&&(Date.now()-s.ts)<12*3600*1000&&p.rol==='emp'&&!p.ext){
+        mostrar('<h2>Sesión abierta en otro sitio</h2><p class="muted">Tu cuenta está abierta en el dispositivo de la granja. Pide a tu administrador que cierre esa sesión.</p><button class="btn btn-p btn-w" id="sdNo">Entendido</button>');
+        $('#sdNo').onclick=async()=>{await FBA().signOut();pantallaLogin(t)};
         return;
       }
       await conTope(ref.update({sesion:{dev:devid(),ts:Date.now()}}),10000);
