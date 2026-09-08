@@ -12,6 +12,7 @@
   function FBD(){if(!window.db&&typeof firebase!=='undefined'&&firebase.firestore)window.db=firebase.firestore();return window.db}
   function FBA(){if(!window.auth&&typeof firebase!=='undefined'&&firebase.auth)window.auth=firebase.auth();return window.auth}
   function genCode(){return 'AVI-'+Math.floor(1000+Math.random()*9000)}
+    function dentroHor(hor,hh){return hor.ini<=hor.fin?(hh>=hor.ini&&hh<=hor.fin):(hh>=hor.ini||hh<=hor.fin)}
   function conTope(p,ms){return Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error('La nube tarda demasiado: revisa tu internet')),ms))])}
   window.addEventListener('error',e=>{try{toast('Error: '+e.message)}catch(_){}});
   window.addEventListener('unhandledrejection',e=>{try{toast('Error interno: '+((e.reason&&e.reason.message)||e.reason))}catch(_){}});
@@ -40,7 +41,7 @@
       if(foot)foot.textContent='Conectado: '+p.nom+' ('+(p.rol==='fundador'?'Fundador':p.rol==='admin'?'Admin':(p.ext?'Encargado':'Empleado'))+')';
       if(p.rol==='emp'||p.rol==='ext'){
         try{const nd=await conTope(FBD().collection('negocios').doc(t.id).get(),10000);const hor=(nd.data()&&nd.data().horario)||{ini:'05:00',fin:'21:00'};const hm=new Date();const hh=('0'+hm.getHours()).slice(-2)+':'+('0'+hm.getMinutes()).slice(-2);
-        if(hh<hor.ini||hh>hor.fin){patear('<h2>Fuera de horario</h2><p class="muted">Tu jornada es de '+hor.ini+' a '+hor.fin+'.</p>');return}}catch(e){}
+        if(!dentroHor(hor,hh)){mostrar('<h2>Fuera de horario</h2><p class="muted">Tu jornada es de '+hor.ini+' a '+hor.fin+'. Vuelve en tu horario o consulta a tu administrador.</p><button class="btn btn-p btn-w" id="fhOk">Entendido</button>');$('#fhOk').onclick=async()=>{await FBA().signOut();pantallaLogin(t)};return}}catch(e){}
       }
       if(p.rol==='admin'||p.rol==='fundador'){
         const ent=loadJSON('pc_ent_'+u.uid,0);
@@ -73,7 +74,7 @@
         const nd=await conTope(FBD().collection('negocios').doc(t.id).get(),10000);
         const hor=(nd.data()&&nd.data().horario)||{ini:'05:00',fin:'21:00'};
         const hm=new Date();const hh=('0'+hm.getHours()).slice(-2)+':'+('0'+hm.getMinutes()).slice(-2);
-        if(hh<hor.ini||hh>hor.fin){await FBA().signOut();mostrar('<h2>Fuera de horario</h2><p class="muted">Tu jornada es de '+hor.ini+' a '+hor.fin+'. Fuera de ese horario la app queda cerrada para empleados.</p>');return}
+        if(!dentroHor(hor,hh)){mostrar('<h2>Fuera de horario</h2><p class="muted">Tu jornada es de '+hor.ini+' a '+hor.fin+'. Fuera de ese horario la app queda cerrada para empleados y encargados. Vuelve en tu horario o consulta a tu administrador.</p><button class="btn btn-p btn-w" id="fhOk">Entendido</button>');$('#fhOk').onclick=async()=>{await FBA().signOut();pantallaLogin(t)};return}
       }
       if(p.rol==='admin'||p.rol==='fundador'){
         const ent=loadJSON('pc_ent_'+u.uid,0);
