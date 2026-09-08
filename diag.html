@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Diagnóstico</title>
+<style>body{font-family:monospace;padding:16px;background:#111;color:#0f0;white-space:pre-wrap;font-size:12px}</style>
+<script src="fb.js"></script></head><body><div id="out">Cargando…</div>
+<script>
+(async function(){
+  const L=[];
+  const p=s=>{L.push(s);document.getElementById('out').textContent=L.join('\n')};
+  try{await fbListo;p('SDK: '+(window.db?'OK':'SIN DB'))}catch(e){p('SDK ERROR: '+e.message)}
+  p('auth: '+((window.auth&&auth.currentUser)?auth.currentUser.email:'sin sesión'));
+  ['pc_tenant','pc_session','pc_devid','pc_menu_usu','pc_rl','pc_justout'].forEach(k=>{const v=localStorage.getItem(k);if(v)p(k+': '+v)});
+  Object.keys(localStorage).filter(x=>x.indexOf('pc_ok_')===0||x.indexOf('pc_ent_')===0||x.indexOf('pc_act_')===0).forEach(x=>p(x+': '+localStorage.getItem(x)));
+  p('sw: '+('serviceWorker' in navigator?(navigator.serviceWorker.controller?'controlado':'sin control'):'n/a'));
+  try{
+    const ns=await db.collection('negocios').get();
+    p('NEGOCIOS: '+ns.size);
+    for(const d of ns.docs){const n=d.data();p(' - '+d.id+' | '+n.code+' | '+n.nombre+' | plan:'+n.plan+' | activo:'+n.activo+' | hor:'+JSON.stringify(n.horario||null));
+      const us=await db.collection('negocios/'+d.id+'/usuarios').get();
+      for(const u of us.docs){const q=u.data();p('    * '+q.usu+' | '+q.rol+(q.ext?'+':'')+' | ses:'+(q.sesion?q.sesion.dev+'@'+new Date(q.sesion.ts).toISOString():'libre'));}
+    }
+  }catch(e){p('FS ERROR: '+e.message)}
+  p('--- FIN: copia desde SDK hasta aquí y pégamelo ---');
+})();
+</script></body></html>
