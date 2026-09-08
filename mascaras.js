@@ -1,35 +1,20 @@
-/* ══ mascaras.js v7 · menú correcto sin mareo ══ */
+/* ══ mascaras.js v8 · sin recargas: todo al instante ══ */
 (function(){
-  let USED='';
   const S=()=>loadJSON('pc_session',null);
-  function rolDe(p){return p?(p.rol==='fundador'?'admin':p.rol):null}
+  function rolDe(p){return p?((p.rol||'').trim()==='fundador'?'admin':(p.rol||'').trim()):null}
   document.addEventListener('DOMContentLoaded',()=>{
     ocultarDinero();
     const s=S();
-    saveJSON('pc_menu_usu',(s&&s.usu)||'');
     if(!s||rolDe(s)==='emp')document.documentElement.classList.add('premask');
-    if(s){USED=s.usu||'';arranque(s)}
-    const poll=setInterval(()=>{
-            const p=window.NUBE_PERFIL;
-      if(!p||!p.usu)return;
-      if(USED===(p.usu||''))return;
-      USED=p.usu||'';
-      saveJSON('pc_session',{nom:p.nom,usu:p.usu,rol:rolDe(p),ext:!!p.ext});
-      const mu=loadJSON('pc_menu_usu','');
-      if(mu!==(p.usu||'')){
-        saveJSON('pc_menu_usu',p.usu||'');
-        const rl=loadJSON('pc_rl',{n:0,ts:0});
-        if(Date.now()-rl.ts>10000){saveJSON('pc_rl',{n:1,ts:Date.now()});location.reload();return}
-        if(rl.n<2){saveJSON('pc_rl',{n:rl.n+1,ts:rl.ts});location.reload();return}
-      }
-      arranque(p);
-    },100);
+    if(s)arranque(s);
     const vig=setInterval(()=>{
-      if(window.NUBE_USER&&!$('#sideOut')&&typeof asegurarSalirNube==='function'){try{asegurarSalirNube(window.NUBE_USER)}catch(e){}}
       const p=window.NUBE_PERFIL;
+      if(p&&p.usu&&(S()||{}).usu!==p.usu){saveJSON('pc_session',{nom:p.nom,usu:p.usu,rol:(p.rol||'').trim(),ext:!!p.ext})}
+      if(window.NUBE_USER&&!$('#sideOut')&&typeof asegurarSalirNube==='function'){try{asegurarSalirNube(window.NUBE_USER)}catch(e){}}
       if(p&&rolDe(p)!=='emp')document.documentElement.classList.remove('premask');
     },1000);
     setTimeout(()=>clearInterval(vig),9000);
+    [300,1200,2500].forEach(ms=>setTimeout(aplicar,ms));
   });
   function ocultarDinero(){
     document.querySelectorAll('.t,.s,b,strong,div,span').forEach(el=>{
@@ -47,24 +32,11 @@
     document.querySelectorAll('button,a.btn').forEach(b=>{textos.forEach(t=>{if((b.textContent||'').trim().toLowerCase().indexOf(t.toLowerCase())===0)b.style.display='none'})});
   }
   function arranque(p){
-    saveJSON('pc_session',{nom:p.nom,usu:p.usu,rol:rolDe(p),ext:!!p.ext});
     document.body.classList.remove('rol-fund','rol-admin','rol-enc','rol-emp');
-    document.body.classList.add(rolDe(p)==='admin'?(p.rol==='fundador'?'rol-fund':'rol-admin'):(p.ext?'rol-enc':'rol-emp'));
+    document.body.classList.add(rolDe(p)==='admin'?(((p.rol||'').trim()==='fundador')?'rol-fund':'rol-admin'):(p.ext?'rol-enc':'rol-emp'));
     try{if(typeof paginaPermitida==='function')paginaPermitida()}catch(e){}
-    try{if(typeof asegurarSalirNube==='function'&&window.NUBE_USER)asegurarSalirNube(window.NUBE_USER)}catch(e){}
-    try{
-      const side=$('#side');
-      if(side&&!$('#sideTut')&&window.lanzarTutorial){
-        const a=document.createElement('a');a.href='#';a.id='sideTut';
-        a.innerHTML='<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z"/></svg><span>Tutorial</span>';
-        a.onclick=e=>{e.preventDefault();lanzarTutorial(true)};
-        side.appendChild(a);
-      }
-      document.querySelectorAll('button,a').forEach(b=>{if((b.textContent||'').trim()==='Ver más'){b.onclick=e=>{e.preventDefault();if(window.lanzarTutorial)lanzarTutorial(true)}}});
-    }catch(e){}
     navegar(p);
     if(rolDe(p)!=='emp')mostrarDinero();
-    [0,300,1200,2500].forEach(ms=>setTimeout(aplicar,ms));
   }
   function navegar(p){
     if(!p||rolDe(p)!=='emp')return;
