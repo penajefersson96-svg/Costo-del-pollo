@@ -42,7 +42,7 @@
     if(!p||rolDe(p)!=='emp')return;
     const enc=!!p.ext;
     const pag=(location.pathname.split('/').pop()||'index.html');
-    if(pag==='index.html'||pag===''||pag==='usuarios2.html'||(!enc&&pag==='calculo2.html'))location.replace('lotes2.html');
+    if(pag==='index.html'||pag===''||pag==='usuarios2.html'||pag==='calculo2.html')location.replace('lotes2.html');
   }
   function aplicar(){
     const p=window.NUBE_PERFIL||S();if(!p)return;
@@ -61,7 +61,8 @@
   }
   function botonReporteEquipo(){
     document.querySelectorAll('button,a.btn').forEach(b=>{
-      if(!/reporte/i.test(b.textContent||'')||b.dataset.eqrep)return;
+      const tx = (b.textContent || '').trim();
+      if (!/^reporte(?!ar)/i.test(tx) || b.dataset.eqrep) return;
       b.dataset.eqrep='1';
       const nb=b.cloneNode(true);b.parentNode.replaceChild(nb,b);
       nb.onclick=e=>{e.preventDefault();reporteDiario()};

@@ -140,7 +140,7 @@ const esAdminInv=!S3||S3.rol==='admin';
 const esExtInv=!!(S3&&S3.ext);
 function ocultarInv(){
   const card=el=>el&&el.closest('.card');
-  if(card($('#btnCompra')))card($('#btnCompra')).style.display=esAdminInv?'':'none';
+  if(card($('#btnCompra')))card($('#btnCompra')).style.display=(esAdminInv||esExtInv)?'':'none';
   if(card($('#histTbl')))card($('#histTbl')).style.display=(esAdminInv||esExtInv)?'':'none';
   if(card($('#alertasInv')))card($('#alertasInv')).style.display=(esAdminInv||esExtInv)?'':'none';
   if(card($('#itemsList')))card($('#itemsList')).style.display=(esAdminInv||esExtInv)?'':'none';
@@ -148,7 +148,8 @@ function ocultarInv(){
 }
 function quitarBotonesInv(){
   if(esAdminInv)return;
-  document.querySelectorAll('#itemsList [data-ed],#itemsList [data-di]').forEach(b=>b.remove());
+  document.querySelectorAll('#itemsList [data-ed],#itemsList [data-di],#histTbl [data-dc]').forEach(b=>b.remove());
+  document.querySelectorAll('#histTbl tr').forEach(tr=>{const c=tr.children[4];if(c)c.remove()});
 }
 const _renderInv=render;
 render=function(){_renderInv();quitarBotonesInv();ocultarInv()};
