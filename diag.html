@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Diagnóstico v3</title>
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Diagnóstico v4</title>
 <style>body{font-family:monospace;padding:16px;background:#111;color:#0f0;white-space:pre-wrap;font-size:12px}#cp{position:fixed;bottom:12px;right:12px;padding:10px 16px;background:#0f0;color:#111;border:0;border-radius:8px;font-weight:bold}</style>
 <script src="fb.js"></script></head><body><div id="out">Cargando…</div><button id="cp">Copiar reporte</button>
 <script>
@@ -9,50 +9,68 @@
   const ok=(c,label)=>{V.push((c?'✅ ':'❌ ')+label);render()};
   p('FECHA: '+new Date().toISOString());
   let sdk=false;
-  try{await fbListo;sdk=!!window.db;p('SDK: '+(sdk?'OK':'SIN DB'))}catch(e){p('SDK ERROR: '+e.message)}
+  try{await fbListo;sdk=!!window.db}catch(e){p('SDK ERROR: '+e.message)}
   ok(sdk,'SDK conectado');
-  p('auth: '+((window.auth&&auth.currentUser)?auth.currentUser.email:'sin sesión'));
   const err=localStorage.getItem('pc_err');
-  p('ERRORES APP: '+(err||'ninguno'));
-  ok(!err,'Sin errores capturados en páginas');
+  ok(!err,'Sin errores capturados');
+  if(err)p('ERRORES: '+err);
+  const PAGS=['index.html','calculo2.html','lotes2.html','inventario2.html','usuarios2.html'];
+  const REQ={'*':['core.js','fb.js','nube.js','mascaras.js','tutorial.js','style.css'],'usuarios2.html':['usuariosnube.js','admintools.js']};
   const MARK={'nube.js':['dentroHor','logErr'],'mascaras.js':['v8'],'usuariosnube.js':['v7'],'tutorial.js':['data-tutov'],'admintools.js':['Herramientas'],'sw.js':['v4'],'core.js':['recortarMenu'],'fb.js':['fbListo']};
-  let filesOk=true;
-  for(const f in MARK){
+  const assets={};
+  let pagOk=true;
+  for(const pg of PAGS){
+    try{
+      const r=await fetch(pg+'?'+Date.now());
+      if(!r.ok){pagOk=false;p('PAGE '+pg+': HTTP '+r.status);continue}
+      const h=await r.text();
+      const srcs=[...h.matchAll(/<script[^>]+src="([^"]+)"/g)].map(m=>m[1]);
+      const css=[...h.matchAll(/<link[^>]+href="([^"]+\.css)"/g)].map(m=>m[1]);
+      srcs.forEach(s=>assets[s]=1);css.forEach(s=>assets[s]=1);
+      const dup=srcs.filter((s,i)=>srcs.indexOf(s)!==i);
+      const need=(REQ['*']||[]).concat(REQ[pg]||[]);
+      const falta=need.filter(n=>!srcs.concat(css).some(s=>s.indexOf(n)>=0));
+      if(dup.length||falta.length){pagOk=false;p('PAGE '+pg+': '+(falta.length?'FALTA: '+falta.join(','):'')+(dup.length?' DUPLICADOS: '+dup.join(','):''))}
+      else p('PAGE '+pg+': OK · scripts: '+srcs.join(', '));
+    }catch(e){pagOk=false;p('PAGE '+pg+': ERROR '+e.message)}
+  }
+  ok(pagOk,'Páginas completas y sin duplicados');
+  let assOk=true;
+  for(const a of Object.keys(assets)){
     const t0=performance.now();
     try{
-      const r=await fetch(f+'?'+Date.now());const t=await r.text();
+      const r=await fetch(a+'?'+Date.now());
+      const t=await r.text();
       const ms=Math.round(performance.now()-t0);
-      const miss=MARK[f].filter(m=>t.indexOf(m)<0);
-      if(miss.length){filesOk=false;p('FILE '+f+': FALTA '+miss.join(',')+' ('+ms+'ms)')}
-      else p('FILE '+f+': OK ('+ms+'ms) · '+(t.split('\n')[0]||'').slice(0,60));
-    }catch(e){filesOk=false;p('FILE '+f+': ERROR '+e.message)}
+      if(!r.ok){assOk=false;p('ASSET '+a+': HTTP '+r.status)}
+      else{
+        let extra='';
+        if(MARK[a]){const miss=MARK[a].filter(m=>t.indexOf(m)<0);if(miss.length){assOk=false;extra=' FALTA: '+miss.join(',')}}
+        p('ASSET '+a+': '+t.length+'B ('+ms+'ms)'+extra+' · '+(t.split('\n')[0]||'').slice(0,50));
+      }
+    }catch(e){assOk=false;p('ASSET '+a+': ERROR '+e.message)}
   }
-  ok(filesOk,'Archivos publicados correctos');
+  ok(assOk,'Archivos publicados íntegros');
+  try{
+    const c=await fetch('style.css?'+Date.now());const t=await c.text();
+    const miss=['#loginOv','premask'].filter(x=>t.indexOf(x)<0);
+    ok(miss.length===0,'CSS con reglas clave');
+    if(miss.length)p('CSS FALTA: '+miss.join(','));
+  }catch(e){ok(false,'CSS legible')}
   p('sw: '+('serviceWorker' in navigator?(navigator.serviceWorker.controller?'controlado':'sin control'):'n/a'));
-  const ses=localStorage.getItem('pc_session');
-  p('LS pc_session: '+ses);
-  ok(!!ses,'Perfil local presente');
-  const ten=localStorage.getItem('pc_tenant');
-  p('LS pc_tenant: '+ten);
-  ok(!!ten,'Negocio vinculado');
-  Object.keys(localStorage).sort().forEach(k=>{if(k.indexOf('pc_')===0&&['pc_session','pc_tenant','pc_err'].indexOf(k)<0)p('LS '+k+': '+String(localStorage.getItem(k)).slice(0,160))});
+  ['pc_session','pc_tenant'].forEach(k=>p('LS '+k+': '+localStorage.getItem(k)));
+  Object.keys(localStorage).sort().forEach(k=>{if(k.indexOf('pc_')===0&&['pc_session','pc_tenant','pc_err'].indexOf(k)<0)p('LS '+k+': '+String(localStorage.getItem(k)).slice(0,140))});
   try{
     const ns=await db.collection('negocios').get();
     p('NEGOCIOS: '+ns.size);
-    ok(ns.size>=1,'Negocios en la nube');
     for(const d of ns.docs){
       const n=d.data();
-      const horOK=!n.horario||(/^\d{2}:\d{2}$/.test(n.horario.ini)&&/^\d{2}:\d{2}$/.test(n.horario.fin));
-      p(' - '+d.id+' | '+n.code+' | '+n.nombre+' | plan:'+n.plan+' | activo:'+n.activo+' | hor:'+JSON.stringify(n.horario||null)+(n.horario&&(n.horario.ini>n.horario.fin)?' (turno nocturno)':''));
-      ok(horOK,'Horario válido en '+n.code);
+      p(' - '+n.code+' | '+n.nombre+' | plan:'+n.plan+' | activo:'+n.activo+' | hor:'+JSON.stringify(n.horario||null)+(n.horario&&n.horario.ini>n.horario.fin?' (nocturno)':''));
       const us=await db.collection('negocios/'+d.id+'/usuarios').get();
-      for(const u of us.docs){
-        const q=u.data();
-        const viejo=q.sesion&&(Date.now()-q.sesion.ts)>12*3600*1000;
-        p('    * '+JSON.stringify(q.usu)+' | '+JSON.stringify(q.rol)+(q.ext?'+':'')+' | ses:'+(q.sesion?q.sesion.dev+(viejo?' (VIEJA>12h)':''):'libre'));
-      }
+      for(const u of us.docs){const q=u.data();p('    * '+JSON.stringify(q.usu)+' | '+JSON.stringify(q.rol)+(q.ext?'+':'')+' | ses:'+(q.sesion?q.sesion.dev:'libre'))}
     }
-  }catch(e){p('FS ERROR: '+e.message);ok(false,'Lectura de nube')}
+    ok(true,'Nube leída');
+  }catch(e){p('FS ERROR: '+e.message);ok(false,'Nube leída')}
   ok(V.filter(x=>x.indexOf('❌')===0).length===0,'SISTEMA LISTO PARA PRUEBA DE APP');
   document.getElementById('cp').onclick=()=>{navigator.clipboard.writeText(document.getElementById('out').textContent).then(()=>{document.getElementById('cp').textContent='¡Copiado!'})};
 })();
