@@ -14,8 +14,9 @@
   function genCode(){return 'AVI-'+Math.floor(1000+Math.random()*9000)}
     function dentroHor(hor,hh){return hor.ini<=hor.fin?(hh>=hor.ini&&hh<=hor.fin):(hh>=hor.ini||hh<=hor.fin)}
   function conTope(p,ms){return Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error('La nube tarda demasiado: revisa tu internet')),ms))])}
-  window.addEventListener('error',e=>{try{toast('Error: '+e.message)}catch(_){}});
-  window.addEventListener('unhandledrejection',e=>{try{toast('Error interno: '+((e.reason&&e.reason.message)||e.reason))}catch(_){}});
+  function logErr(tag,msg,src,ln){try{const a=loadJSON('pc_err',[]);a.push({t:Date.now(),tag,msg:msg+'',src:(src||'')+':'+(ln||'')});while(a.length>10)a.shift();saveJSON('pc_err',a)}catch(_){}}
+  window.addEventListener('error',e=>{logErr('error',e.message,e.filename,e.lineno);try{toast('Error: '+e.message)}catch(_){}});
+  window.addEventListener('unhandledrejection',e=>{const m=(e.reason&&e.reason.message)||e.reason;logErr('promesa',m);try{toast('Error interno: '+m)}catch(_){}});
   let KICK=null;
   function patear(html){if(KICK){KICK();KICK=null}try{FBA().signOut()}catch(e){}mostrar(html)}
   async function arrancar(){

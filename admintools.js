@@ -17,12 +17,13 @@
         '<button class="btn btn-p btn-w" id="hjBtn" style="margin-top:8px">Guardar horario</button>';
       main.appendChild(card);
       db.collection('negocios').doc(t.id).get().then(d=>{const hor=(d.data()&&d.data().horario)||{ini:'05:00',fin:'21:00'};$('#hjIni').value=hor.ini;$('#hjFin').value=hor.fin}).catch(()=>{});
-      $('#csBtn').onclick=async()=>{
+            $('#csBtn').onclick=async()=>{
         const usu=$('#csUsu').value.trim().toLowerCase();if(!usu)return;
         try{
-          const q=await db.collection('negocios/'+t.id+'/usuarios').where('usu','==',usu).limit(1).get();
-          if(q.empty){toast('Usuario no encontrado');return}
-          await q.docs[0].ref.update({sesion:null});
+          const q=await db.collection('negocios/'+t.id+'/usuarios').get();
+          const d=q.docs.find(x=>(x.data().usu||'').toLowerCase()===usu);
+          if(!d){toast('Usuario no encontrado');return}
+          await d.ref.update({sesion:null});
           toast('Sesión cerrada: ya puede entrar');
         }catch(e){toast('Error: '+e.message)}
       };

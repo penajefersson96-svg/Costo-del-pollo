@@ -1,23 +1,27 @@
-<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Diagnóstico</title>
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Diagnóstico v2</title>
 <style>body{font-family:monospace;padding:16px;background:#111;color:#0f0;white-space:pre-wrap;font-size:12px}</style>
 <script src="fb.js"></script></head><body><div id="out">Cargando…</div>
 <script>
 (async function(){
-  const L=[];
-  const p=s=>{L.push(s);document.getElementById('out').textContent=L.join('\n')};
+  const L=[];const p=s=>{L.push(s);document.getElementById('out').textContent=L.join('\n')};
+  p('FECHA: '+new Date().toISOString());
   try{await fbListo;p('SDK: '+(window.db?'OK':'SIN DB'))}catch(e){p('SDK ERROR: '+e.message)}
   p('auth: '+((window.auth&&auth.currentUser)?auth.currentUser.email:'sin sesión'));
-  ['pc_tenant','pc_session','pc_devid','pc_menu_usu','pc_rl','pc_justout'].forEach(k=>{const v=localStorage.getItem(k);if(v)p(k+': '+v)});
-  Object.keys(localStorage).filter(x=>x.indexOf('pc_ok_')===0||x.indexOf('pc_ent_')===0||x.indexOf('pc_act_')===0).forEach(x=>p(x+': '+localStorage.getItem(x)));
+  Object.keys(localStorage).sort().forEach(k=>{if(k.indexOf('pc_')===0)p('LS '+k+': '+String(localStorage.getItem(k)).slice(0,200))});
+  p('ERRORES APP: '+(localStorage.getItem('pc_err')||'ninguno'));
+  const MARK={'nube.js':['dentroHor','logErr'],'mascaras.js':['v8'],'usuariosnube.js':['v7'],'tutorial.js':['data-tutov'],'admintools.js':['Herramientas'],'sw.js':['v4'],'core.js':['recortarMenu'],'fb.js':['fbListo']};
+  for(const f in MARK){
+    try{const r=await fetch(f+'?'+Date.now());const t=await r.text();const miss=MARK[f].filter(m=>t.indexOf(m)<0);p('FILE '+f+': '+(miss.length?'FALTA: '+miss.join(','):'OK'))}catch(e){p('FILE '+f+': ERROR '+e.message)}
+  }
   p('sw: '+('serviceWorker' in navigator?(navigator.serviceWorker.controller?'controlado':'sin control'):'n/a'));
   try{
     const ns=await db.collection('negocios').get();
     p('NEGOCIOS: '+ns.size);
     for(const d of ns.docs){const n=d.data();p(' - '+d.id+' | '+n.code+' | '+n.nombre+' | plan:'+n.plan+' | activo:'+n.activo+' | hor:'+JSON.stringify(n.horario||null));
       const us=await db.collection('negocios/'+d.id+'/usuarios').get();
-      for(const u of us.docs){const q=u.data();p('    * '+q.usu+' | '+q.rol+(q.ext?'+':'')+' | ses:'+(q.sesion?q.sesion.dev+'@'+new Date(q.sesion.ts).toISOString():'libre'));}
+      for(const u of us.docs){const q=u.data();p('    * '+JSON.stringify(q.usu)+' | '+JSON.stringify(q.rol)+(q.ext?'+':'')+' | ses:'+(q.sesion?q.sesion.dev:'libre'));}
     }
   }catch(e){p('FS ERROR: '+e.message)}
-  p('--- FIN: copia desde SDK hasta aquí y pégamelo ---');
+  p('--- FIN: copia todo y pégalo ---');
 })();
 </script></body></html>
