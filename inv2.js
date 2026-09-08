@@ -157,3 +157,4 @@ document.addEventListener('click',function(e){
   if(e.target.id==='btnConsumo'&&!esAdminInv&&!$('#dNota').value.trim()){e.stopImmediatePropagation();e.preventDefault();toast('Indica el motivo del gasto')}
 },true);
 ocultarInv();quitarBotonesInv();
+setInterval(()=>{const s=loadJSON('pc_session',null);const a=!s||s.rol==='admin';if(a!==esAdminInv)location.reload()},1500);

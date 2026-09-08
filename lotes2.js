@@ -52,3 +52,4 @@ document.addEventListener('click',e=>{
   if(sh){const s=lotes().find(x=>x.id===+sh.dataset.sh);if(s)compartirReporte(s.nombre,calcLote(s.data))}
 });
 render();
+setInterval(()=>{const s=loadJSON('pc_session',null);const a=!s||s.rol==='admin';if(a!==esAdmin)location.reload()},1500);
